@@ -1,0 +1,9 @@
+# Decisions log
+
+Every change to the plan, stack or layout in `CLAUDE.md` / `architecture.md` / `plan.md` is recorded here with date, who decided, and why.
+
+| ID | Date | Decision | Decided by | Why | Effect |
+| --- | --- | --- | --- | --- | --- |
+| D1 | 2026-09-30 | Python modules moved from repo root into a `crowdsafe/` package (`crowdsafe.counting`, `crowdsafe.datasets`, …). Folder names unchanged. | User approved agent's proposal | A top-level `datasets/` folder would shadow Hugging Face's `datasets` library (a dependency of the Chronos/transformers stack) whenever code runs from the repo root. | Imports are `from crowdsafe.<module> import …`. `CLAUDE.md` §4 updated. |
+| D2 | 2026-09-30 | New project from scratch; the earlier YOLO11m + CSRNet implementation and its dashboard are not reused. | User | The old idea was replaced by the design in these docs. | T0.5 (old-system baseline) dropped. The "hard switch" row of the fusion ablation (T3.8) is re-implemented from its description (YOLO count below a switch threshold, density-model count above it) and labelled "re-implemented" in results. Dashboard is a new Next.js build. |
+| D3 | 2026-09-30 | GPU work runs as Jupyter notebooks the user executes on the college A100 (Kubeflow). Models are exported to ONNX and returned; results come back as small CSV/JSON/Markdown files. | User | The A100 is only reachable through Kubeflow notebooks; the dev laptop is CPU-only (7.8 GB RAM). | Notebooks live in `notebooks/` (sources in `notebooks/src/*.py`, built with `scripts/build_notebooks.py`). Returned ONNX files go in `weights/`. Each export is checked against PyTorch output in the notebook before it is returned. |

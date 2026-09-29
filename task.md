@@ -14,13 +14,14 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [x] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
   Result: 2026-09-30 — folder contains planning docs only; no YOLO11m + CSRNet code or Next.js dashboard present. Started as a new repo.
 - [x] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
-  Result: 2026-09-30 — this laptop: Python 3.11.9, torch 2.0.1+cpu, Intel UHD only (no CUDA), 7.8 GB RAM (~1 GB free), 34 GB free disk. Gaps: no A100 here, disk < 150 GB. A100 machine not yet identified.
-- [ ] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
-  Result:
+  Result: 2026-09-30 — laptop: Python 3.11.9, torch 2.0.1+cpu, Intel UHD only (no CUDA), 7.8 GB RAM, 34 GB free disk. A100 = college machine via Kubeflow notebooks (D3); its specs are checked by `notebooks/01_env_and_onnx_export.ipynb` (pending run).
+- [x] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
+  Result: 2026-09-30 — user confirmed all accounts exist.
 - [x] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
   Result: 2026-09-30 — git repo initialised; layout, `.gitignore`, `requirements.txt`, `pyproject.toml`, `configs/cam_template.yaml`; smoke test 11 passed.
-- [ ] **T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).
-  Needs: at least 3 clips with some ground truth (public dataset clips are fine).
+- [x] ~~**T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).~~
+  Result: 2026-09-30 — DROPPED by user (new project, old implementation not reused; `docs/decisions.md` D2). Hard-switch ablation row will be re-implemented.
+- [ ] **T0.6 (BOTH)** Run `notebooks/01_env_and_onnx_export.ipynb` on the A100: environment report + ONNX exports of YOLO11l, RAFT-large, CLIP-EBC ViT-B/16 (SHA and NWPU), each checked against PyTorch.
   Result:
 
 ### T1 Data and CCTV quality
@@ -179,7 +180,5 @@ The agent keeps this list current.
 
 | Task | Waiting for | Asked on |
 | --- | --- | --- |
-| T0.2 / all GPU work | Access details for the A100 machine (this laptop has no CUDA GPU) | 2026-09-30 |
-| T0.5 | Old YOLO11m + CSRNet code + dashboard (not in this folder), or decision to skip the baseline | 2026-09-30 |
-| T0.3 | HF / Kaggle / CVAT accounts set as env vars by user | 2026-09-30 |
+| T0.6 | User runs notebook 01 on the A100 and returns `crowdsafe_nb01_outputs.zip` | 2026-09-30 |
 | T1.2, T2.1, T2.2 | CCTV footage, floor measurements, venue layout | 2026-09-30 |

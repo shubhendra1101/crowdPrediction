@@ -6,7 +6,7 @@ This file is read automatically at the start of every session. Follow it over an
 
 CrowdSafe is a research project and working demo: an AI system that **forecasts crowd density and stampede risk per zone, minutes ahead, and raises tiered early-warning alerts** from fixed CCTV cameras.
 
-It extends the existing CrowdSafe repo (YOLO11m + CSRNet counting, streamed to a Next.js dashboard).
+It is a new project built from scratch in this repo (the earlier YOLO11m + CSRNet version is not reused; see `docs/decisions.md` D2). GPU work runs as notebooks the user executes on the college A100 via Kubeflow (D3).
 
 Core idea, in one line: calibrated persons/m² per zone + crowd-motion precursors (flow collapse, turbulence/crowd pressure) + a pretrained forecaster → alerts with lead time.
 
@@ -41,29 +41,35 @@ Read these before doing anything substantial:
 | Uncertainty | Chronos-2 quantiles + split conformal calibration |
 | Anomaly | scikit-learn Isolation Forest |
 | Backend | FastAPI + WebSocket |
-| Frontend | existing Next.js dashboard |
+| Frontend | Next.js dashboard (new build) |
+| Model exchange | ONNX files exported on the A100 (D3) |
 | Storage | Parquet (experiments), SQLite (live demo) |
 
 ## 4. Repository layout
 
+Python modules live in the `crowdsafe/` package (import as `crowdsafe.counting` etc.) so that `datasets/` cannot shadow Hugging Face's `datasets` library. See `docs/decisions.md` D1.
+
 ```
-crowdsafe/
+<repo root>/
 ├── configs/          # one YAML per camera: homography, zones, adjacency, boundaries, thresholds
-├── calibration/      # homography + zone tools
-├── counting/         # yolo_track.py, density_model.py, fusion.py
-├── motion/           # flow.py, zone_motion.py
-├── features/         # schema.py, logger.py
-├── datasets/         # loaders: julich.py, public_video.py, cctv.py
-├── simulation/       # jupedsim scenarios -> same feature schema
-├── forecasting/      # baselines.py, chronos.py, gru.py (optional), conformal.py
-├── risk/             # rules.py, anomaly.py, alerts.py
-├── server/           # FastAPI + WebSocket
-├── dashboard/        # existing Next.js app
-├── eval/             # metrics, ablations, figures
+├── crowdsafe/        # Python package
+│   ├── calibration/  # homography + zone tools
+│   ├── counting/     # yolo_track.py, density_model.py, fusion.py
+│   ├── motion/       # flow.py, zone_motion.py
+│   ├── features/     # schema.py, logger.py
+│   ├── datasets/     # loaders: julich.py, public_video.py, cctv.py
+│   ├── simulation/   # jupedsim scenarios -> same feature schema
+│   ├── forecasting/  # baselines.py, chronos.py, gru.py (optional), conformal.py
+│   ├── risk/         # rules.py, anomaly.py, alerts.py
+│   ├── server/       # FastAPI + WebSocket
+│   └── eval/         # metrics, ablations, figures
+├── notebooks/        # GPU notebooks run by the user on the college A100 (Kubeflow); src/ holds editable sources
+├── dashboard/        # Next.js app (new build)
+├── docs/             # decisions.md: record of changes to the plan/stack
 ├── scripts/          # CLI entry points
 ├── tests/
 ├── data/             # NOT committed (gitignored)
-├── weights/          # NOT committed (gitignored)
+├── weights/          # NOT committed (gitignored); ONNX models returned from the A100 go here
 └── results/          # metric tables + figures (small files only)
 ```
 

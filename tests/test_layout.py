@@ -14,8 +14,8 @@ PACKAGES = [
 
 @pytest.mark.parametrize("name", PACKAGES)
 def test_package_imports(name: str) -> None:
-    mod = importlib.import_module(name)
-    assert Path(mod.__file__).parent == ROOT / name
+    mod = importlib.import_module(f"crowdsafe.{name}")
+    assert Path(mod.__file__).parent == ROOT / "crowdsafe" / name
 
 
 def test_camera_template_has_schema_keys() -> None:

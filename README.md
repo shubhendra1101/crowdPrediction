@@ -17,3 +17,13 @@ pytest
 ```
 
 `data/`, `weights/` and videos are gitignored; keep them out of git.
+
+## GPU notebooks (college A100, Kubeflow)
+
+GPU work runs as notebooks in `notebooks/`. Edit the sources in `notebooks/src/`, then rebuild:
+
+```
+python scripts/build_notebooks.py
+```
+
+Upload the `.ipynb` to Kubeflow, run all cells, and return the zips it prints. Returned ONNX models go in `weights/`. Changes to the plan are recorded in `docs/decisions.md`.
