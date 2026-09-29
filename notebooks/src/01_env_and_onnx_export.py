@@ -1,23 +1,24 @@
 # %% [markdown]
 # # CrowdSafe — Notebook 01: A100 environment check + ONNX export
 #
-# **Tasks:** T0.2 (A100 environment), T0.6 (ONNX exports for T3.1 / T3.3 / T4.1).
+# **Tasks:** T0.2 (A100 environment), T0.6 (ONNX models for T3.1 / T3.2 / T3.3 / T4.1).
 #
 # **What it does**
 # 1. Records the machine: GPU, CUDA, RAM, disk, internet access, whether tokens are set (never their values).
-# 2. Exports three pretrained models to ONNX (no training):
+# 2. Exports pretrained models to ONNX (no training):
 #    - **YOLO11l** (Ultralytics, COCO) — person detector, dynamic input size.
 #    - **RAFT-large** (torchvision) — optical flow, fixed 544×960 input.
-#    - **CLIP-EBC ViT-B/16** (official release weights) — density model, ShanghaiTech-A and NWPU checkpoints, 224×224 windows.
-# 3. Checks every ONNX file against the original PyTorch model on the same input and writes the differences to a report.
+#    - **CLIP-EBC ViT-B/16, NWPU weights** from the official Hugging Face repo `Yiming-M/CLIP-EBC` — density model, 224×224 windows.
+# 3. Downloads the **CrowdHuman YOLO11s person+head** model (`Sharath33/Person`, already ONNX) and smoke-tests it.
+# 4. Checks every ONNX file against the original PyTorch model on the same input and writes the differences to a report.
 #
 # **How to run**
 # 1. Start a Kubeflow notebook server with the A100 attached. Upload this notebook.
-# 2. `Kernel → Restart & Run All`. Expected time: ~15–25 min, mostly downloads (~2.5 GB) and export.
+# 2. `Kernel → Restart & Run All`. Expected time: ~10–20 min, mostly downloads (~1.5 GB) and export.
 # 3. When it finishes, the last cell prints two file paths. Download both from the Jupyter file browser
 #    (right-click → Download) and give them back to the agent:
 #    - `crowdsafe_nb01_report.zip` (small: reports, logs) — **always return this, even if something failed**
-#    - `crowdsafe_nb01_onnx.zip` (~1–1.5 GB: the ONNX models)
+#    - `crowdsafe_nb01_onnx.zip` (~0.6–1 GB: the ONNX models)
 #
 # **If a cell fails:** don't fix it by hand. Run the remaining cells (each export is independent),
 # then return the report zip — the error text is saved in it.
@@ -51,19 +52,23 @@ RAFT_H, RAFT_W = 544, 960
 RAFT_ITERS = 12                   # torchvision default number of flow updates
 RAFT_TEST_SHIFT = (6, 3)          # (dx, dy) px synthetic shift for the sanity check
 
-# CLIP-EBC (T3.3) — official v1.0.0 release assets
-CLIPEBC_REPO = "https://github.com/Yiming-M/CLIP-EBC.git"
-CLIPEBC_RELEASE = "https://github.com/Yiming-M/CLIP-EBC/releases/download/v1.0.0"
-CLIPEBC_CKPTS = {                 # our name -> (release asset, dataset key in configs/reduction_*.json)
-    "clipebc_vitb16_sha": ("ShanghaiTech_A_CLIP_EBC_ViT_B_16_Word", "sha"),
-    "clipebc_vitb16_nwpu": ("NWPU_CLIP_ViT_B_16_Word", "nwpu"),
-}
-# Defaults taken from the repo's released NWPU result name "clip_vit_b_16_word_224_8_4_fine";
-# overridden automatically if the checkpoint folder name says otherwise.
-CLIPEBC_DEFAULTS = dict(input_size=224, reduction=8, truncation=4, granularity="fine",
-                        anchor_points="average", prompt_type="word", num_vpt=32)
-IMAGENET_MEAN = [0.485, 0.456, 0.406]   # CLIP-EBC datasets/crowd.py
+# CLIP-EBC (T3.3) — official Hugging Face repo (model code + NWPU weights + config.json)
+CLIPEBC_HF_REPO = "Yiming-M/CLIP-EBC"
+CLIPEBC_HF_WEIGHTS = "nwpu_weights/CLIP_EBC_ViT_B_16"      # model.safetensors + config.json
+CLIPEBC_HF_IGNORE = ["nwpu_weights/CLIP_EBC_ViT_L_14/*"]  # ViT-L not used
+CLIPEBC_TEST_IMAGES = ["example1.jpg", "example2.jpg"]     # crowd images shipped in the HF repo
+IMAGENET_MEAN = [0.485, 0.456, 0.406]   # CLIP-EBC app.py / datasets/crowd.py
 IMAGENET_STD = [0.229, 0.224, 0.225]
+# Optional ShanghaiTech-A checkpoint exists only on GitHub releases. CLAUDE.md sourcing rule:
+# keep False unless the user has approved it.
+USE_GITHUB_SHA = False
+CLIPEBC_GITHUB_SHA = "https://github.com/Yiming-M/CLIP-EBC/releases/download/v1.0.0/ShanghaiTech_A_CLIP_EBC_ViT_B_16_Word.tgz"
+
+# CrowdHuman person+head YOLO11s (T3.2) — already ONNX on Hugging Face; downloaded and smoke-tested only
+PHD_HF_REPO = "Sharath33/Person"
+PHD_HF_FILE = "yolov11_phd_s.onnx"
+PHD_CLASSES = {0: "person", 1: "head"}   # from the model card
+PHD_CONF, PHD_IOU = 0.2, 0.6             # model card inference.py defaults
 
 TEST_IMAGE_URL = "https://ultralytics.com/images/bus.jpg"   # small public test image
 
@@ -79,8 +84,9 @@ print("Work dir:", WORK)
 import subprocess
 import sys
 
-PKGS = ["ultralytics>=8.3", "onnx>=1.16", "onnxruntime>=1.18", "onnxslim",
-        "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "psutil", "requests"]
+PKGS = ["ultralytics>=8.3", "onnx>=1.16", "onnxruntime>=1.18", "onnxslim", "huggingface_hub>=0.24",
+        "safetensors", "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "psutil",
+        "requests", "matplotlib"]
 res = subprocess.run([sys.executable, "-m", "pip", "install", "-q", *PKGS], capture_output=True, text=True)
 (LOG_DIR / "pip_install.log").write_text(res.stdout + "\n" + res.stderr)
 print("pip exit code:", res.returncode)
@@ -306,62 +312,30 @@ def export_raft() -> dict:
 record("raft_large", export_raft)
 
 # %% [markdown]
-# ## 7. CLIP-EBC ViT-B/16 → ONNX (T3.3)
-# Downloads the official release weights (~860 MB each), rebuilds the model with the repo's own `get_model`,
-# loads the weights **strictly** (any mismatch = wrong settings = error, not a silent bad model), and exports
-# the 224×224 window model. Sliding-window stitching happens outside ONNX, in `crowdsafe/counting/density_model.py`.
+# ## 7. CLIP-EBC ViT-B/16 (NWPU) → ONNX (T3.3)
+# Downloads the author's official Hugging Face repo `Yiming-M/CLIP-EBC` (model code + `nwpu_weights/CLIP_EBC_ViT_B_16`),
+# rebuilds the model exactly as its `app.py` does (settings from the shipped `config.json`), loads the weights
+# **strictly** (any mismatch = error, not a silent bad model), and exports the 224×224 window model.
+# Sliding-window stitching happens outside ONNX, in `crowdsafe/counting/density_model.py`.
 #
 # ONNX input: RGB float in **[0, 1]**, `N×3×224×224` (ImageNet normalisation built in).
 # ONNX output: density `N×1×28×28`; the sum is the count in that window.
 #
-# Checks: (a) PyTorch vs ONNX on real image windows; (b) our NumPy sliding window vs the repo's own
-# `sliding_window_predict` on the full test image.
+# Checks on the repo's own crowd example images:
+# (a) PyTorch vs ONNX on the same windows; (b) our sliding window vs the repo's `sliding_window_predict`;
+# (c) the whole-image count the way `app.py` computes it — so we can see how much windowing changes the count.
 
 # %%
-import re
-import tarfile
+from huggingface_hub import snapshot_download
+from safetensors.torch import load_file
 
-CLIPEBC_DIR = CACHE / "CLIP-EBC"
-if not CLIPEBC_DIR.exists():
-    subprocess.run(["git", "clone", "--depth", "1", CLIPEBC_REPO, str(CLIPEBC_DIR)], check=True)
+CLIPEBC_DIR = Path(snapshot_download(CLIPEBC_HF_REPO, repo_type="model", ignore_patterns=CLIPEBC_HF_IGNORE,
+                                     local_dir=CACHE / "CLIP-EBC-hf"))
 if str(CLIPEBC_DIR) not in sys.path:
     sys.path.insert(0, str(CLIPEBC_DIR))
 os.chdir(CLIPEBC_DIR)   # the repo resolves some paths relative to itself
-REPORT["clipebc_repo_commit"] = subprocess.run(["git", "-C", str(CLIPEBC_DIR), "rev-parse", "HEAD"],
-                                               capture_output=True, text=True).stdout.strip()
-
-
-def fetch_release(asset: str) -> Path:
-    """Download and unpack one release .tgz; return the folder it was unpacked into."""
-    tgz = CACHE / f"{asset}.tgz"
-    out = CACHE / asset
-    if not out.exists():
-        if not tgz.exists():
-            with requests.get(f"{CLIPEBC_RELEASE}/{asset}.tgz", stream=True, timeout=120) as r:
-                r.raise_for_status()
-                with open(tgz, "wb") as f:
-                    for chunk in r.iter_content(1 << 22):
-                        f.write(chunk)
-        out.mkdir()
-        with tarfile.open(tgz) as t:
-            t.extractall(out)
-    return out
-
-
-def parse_settings(folder: Path) -> tuple[dict, Path, list[str]]:
-    """Pick the best checkpoint in the unpacked folder and read settings from its path name."""
-    files = sorted(str(p.relative_to(folder)) for p in folder.rglob("*") if p.is_file())
-    ckpts = [p for p in folder.rglob("*.pth")] + [p for p in folder.rglob("*.pt")]
-    if not ckpts:
-        raise FileNotFoundError(f"No .pth/.pt in {folder}: {files[:50]}")
-    best = [p for p in ckpts if "best_mae" in p.name] or [p for p in ckpts if "best" in p.name] or ckpts
-    ckpt = best[0]
-    s = dict(CLIPEBC_DEFAULTS)
-    m = re.search(r"clip_vit_b_16_(word|number)_(\d+)_(\d+)_(\d+)_(fine|dynamic|coarse)", str(ckpt).lower())
-    if m:
-        s.update(prompt_type=m[1], input_size=int(m[2]), reduction=int(m[3]),
-                 truncation=int(m[4]), granularity=m[5])
-    return s, ckpt, files
+REPORT["clipebc_source"] = {"hf_repo": CLIPEBC_HF_REPO, "weights": CLIPEBC_HF_WEIGHTS,
+                            "files": sorted(str(p.relative_to(CLIPEBC_DIR)) for p in (CLIPEBC_DIR / CLIPEBC_HF_WEIGHTS).iterdir())}
 
 
 class ClipEbcONNX(torch.nn.Module):
@@ -377,25 +351,31 @@ class ClipEbcONNX(torch.nn.Module):
         return self.net((x - self.mean) / self.std)
 
 
-def build_clipebc(settings: dict, dataset_key: str, ckpt: Path) -> torch.nn.Module:
-    """Rebuild CLIP-EBC with the repo's get_model and load the released weights strictly."""
+def build_clipebc_hf(weights_dir: Path) -> tuple[torch.nn.Module, dict, str]:
+    """Rebuild CLIP-EBC from the HF config.json and load model.safetensors strictly (as in app.py)."""
     from models import get_model
 
-    with open(CLIPEBC_DIR / "configs" / f"reduction_{settings['reduction']}.json") as f:
-        cfg = json.load(f)[str(settings["truncation"])][dataset_key]
-    bins = [(float(lo), float(hi)) for lo, hi in cfg["bins"][settings["granularity"]]]
-    anchors = [float(p) for p in cfg["anchor_points"][settings["granularity"]][settings["anchor_points"]]]
-    net = get_model(backbone="clip_vit_b_16", input_size=settings["input_size"], reduction=settings["reduction"],
-                    bins=bins, anchor_points=anchors, prompt_type=settings["prompt_type"],
-                    num_vpt=settings["num_vpt"], vpt_drop=0.0, deep_vpt=True)
-    try:
-        sd = torch.load(ckpt, map_location="cpu", weights_only=True)
-    except Exception:   # older checkpoints may hold non-tensor objects; this is the official release
-        sd = torch.load(ckpt, map_location="cpu", weights_only=False)
-    if isinstance(sd, dict) and "model_state_dict" in sd:
-        sd = sd["model_state_dict"]
-    net.load_state_dict(sd, strict=True)
-    return net.eval()
+    cfg = json.loads((weights_dir / "config.json").read_text())
+    net = get_model(backbone=cfg["backbone"], input_size=cfg["input_size"], reduction=cfg["reduction"],
+                    bins=[(float(lo), float(hi)) for lo, hi in cfg["bins"]],
+                    anchor_points=[float(p) for p in cfg["anchor_points"]],
+                    prompt_type=cfg["prompt_type"], num_vpt=cfg["num_vpt"],
+                    vpt_drop=cfg["vpt_drop"], deep_vpt=cfg["deep_vpt"])
+    sd = load_file(str(weights_dir / "model.safetensors"))
+    # app.py strips "model." from keys; try a prefix-only strip first, then app.py's exact rule.
+    attempts = {
+        "prefix_strip": {(k[len("model."):] if k.startswith("model.") else k): v for k, v in sd.items()},
+        "app_py_replace": {k.replace("model.", ""): v for k, v in sd.items()},
+        "as_is": sd,
+    }
+    errors = {}
+    for how, cand in attempts.items():
+        try:
+            net.load_state_dict(cand, strict=True)
+            return net.eval(), cfg, how
+        except RuntimeError as e:
+            errors[how] = str(e)[:500]
+    raise RuntimeError(f"No key mapping loaded strictly: {errors}")
 
 
 def sliding_window_np(run, rgb01: np.ndarray, win: int, reduction: int) -> np.ndarray:
@@ -416,22 +396,18 @@ def sliding_window_np(run, rgb01: np.ndarray, win: int, reduction: int) -> np.nd
     return out
 
 
-def export_clipebc(name: str, asset: str, dataset_key: str) -> dict:
-    """Download, rebuild, strictly load, export and check one CLIP-EBC checkpoint."""
+def export_clipebc_hf(name: str, weights_dir: Path, source: str) -> dict:
+    """Build, strictly load, export and check the HF CLIP-EBC checkpoint."""
     import onnxruntime as ort
 
-    folder = fetch_release(asset)
-    settings, ckpt, files = parse_settings(folder)
-    net = build_clipebc(settings, dataset_key, ckpt)
+    net, cfg, key_mapping = build_clipebc_hf(weights_dir)
     model = ClipEbcONNX(net).eval()
-    win = settings["input_size"]
+    win, red = cfg["input_size"], cfg["reduction"]
     dst = ONNX_DIR / f"{name}.onnx"
-    dummy = torch.rand(2, 3, win, win)
     with torch.no_grad():
-        onnx_export(model, (dummy,), dst, input_names=["image"], output_names=["density"],
+        onnx_export(model, (torch.rand(2, 3, win, win),), dst, input_names=["image"], output_names=["density"],
                     dynamic_axes={"image": {0: "batch"}, "density": {0: "batch"}})
     sess = ort.InferenceSession(str(dst), providers=["CPUExecutionProvider"])
-    rgb01 = TEST_RGB.astype(np.float32) / 255.0
 
     def run_torch(batch: np.ndarray) -> np.ndarray:
         with torch.no_grad():
@@ -440,34 +416,113 @@ def export_clipebc(name: str, asset: str, dataset_key: str) -> dict:
     def run_onnx(batch: np.ndarray) -> np.ndarray:
         return sess.run(None, {"image": batch})[0]
 
-    d_torch = sliding_window_np(run_torch, rgb01, win, settings["reduction"])
-    d_onnx = sliding_window_np(run_onnx, rgb01, win, settings["reduction"])
-    checks = {"count_pytorch": float(d_torch.sum()), "count_onnx": float(d_onnx.sum()),
-              "max_abs_diff_density": float(np.abs(d_torch - d_onnx).max())}
-    try:   # compare our stitching with the repo's reference implementation
-        from utils.eval_utils import sliding_window_predict
-        h, w = rgb01.shape[:2]
-        H, W = -(-h // win) * win, -(-w // win) * win
-        img = torch.zeros(1, 3, H, W)
-        img[0, :, :h, :w] = torch.from_numpy(rgb01).permute(2, 0, 1)
-        img = (img - model.mean) / model.std
+    checks = {}
+    for img_name in CLIPEBC_TEST_IMAGES:
+        path = CLIPEBC_DIR / img_name
+        if not path.exists():
+            checks[img_name] = "image not in repo snapshot"
+            continue
+        rgb01 = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        d_t = sliding_window_np(run_torch, rgb01, win, red)
+        d_o = sliding_window_np(run_onnx, rgb01, win, red)
+        c = {"size_hw": list(rgb01.shape[:2]), "count_window_pytorch": float(d_t.sum()),
+             "count_window_onnx": float(d_o.sum()), "max_abs_diff_density": float(np.abs(d_t - d_o).max())}
+        x = torch.from_numpy(rgb01).permute(2, 0, 1)[None]
         with torch.no_grad():
-            ref = sliding_window_predict(net, img, win, win)
-        checks["count_repo_sliding_window"] = float(ref.sum())
-    except Exception as e:
-        checks["count_repo_sliding_window"] = f"not run: {e!r}"
-    save_meta(name, {"source": f"CLIP-EBC release v1.0.0 asset {asset}.tgz", "checkpoint": str(ckpt.relative_to(folder)),
-                     "repo_commit": REPORT["clipebc_repo_commit"], "settings": settings, "dataset_key": dataset_key,
-                     "opset": OPSET, "input": f"image Nx3x{win}x{win} RGB float32 in [0,1] (normalisation built in)",
-                     "output": f"density Nx1x{win // settings['reduction']}x{win // settings['reduction']}; sum = count",
+            try:   # whole image in one pass, as app.py does
+                c["count_whole_image_app_py"] = float(model(x).sum())
+            except Exception as e:
+                c["count_whole_image_app_py"] = f"not run: {e!r}"
+            try:   # repo's reference sliding window on the same zero-padded image
+                from utils.eval_utils import sliding_window_predict
+                h, w = rgb01.shape[:2]
+                H, W = -(-h // win) * win, -(-w // win) * win
+                img = torch.zeros(1, 3, H, W)
+                img[0, :, :h, :w] = x[0]
+                c["count_repo_sliding_window"] = float(sliding_window_predict(net, (img - model.mean) / model.std, win, win).sum())
+            except Exception as e:
+                c["count_repo_sliding_window"] = f"not run: {e!r}"
+        checks[img_name] = c
+    save_meta(name, {"source": source, "config": cfg, "key_mapping": key_mapping, "opset": OPSET,
+                     "input": f"image Nx3x{win}x{win} RGB float32 in [0,1] (ImageNet normalisation built in)",
+                     "output": f"density Nx1x{win // red}x{win // red}; sum = count",
                      "sliding_window": f"non-overlapping {win}px windows over zero-padded frame", "sha256": sha256(dst)})
-    return {"file": dst.name, "size_mb": round(dst.stat().st_size / 1e6, 1), "settings": settings,
-            "archive_files": files[:40], "checks": checks}
+    return {"file": dst.name, "size_mb": round(dst.stat().st_size / 1e6, 1), "key_mapping": key_mapping,
+            "config": cfg, "checks": checks}
 
 
-for name, (asset, key) in CLIPEBC_CKPTS.items():
-    record(name, lambda a=asset, k=key, n=name: export_clipebc(n, a, k))
+record("clipebc_vitb16_nwpu", lambda: export_clipebc_hf(
+    "clipebc_vitb16_nwpu", CLIPEBC_DIR / CLIPEBC_HF_WEIGHTS, f"Hugging Face {CLIPEBC_HF_REPO}/{CLIPEBC_HF_WEIGHTS}"))
 os.chdir(WORK)
+
+if USE_GITHUB_SHA:
+    print("USE_GITHUB_SHA=True: the optional ShanghaiTech-A checkpoint is handled in a later notebook once approved.")
+
+# %% [markdown]
+# ## 7b. CrowdHuman person + head YOLO11s (T3.2) — download and smoke test
+# `Sharath33/Person` is already ONNX, so nothing is exported. This cell downloads it, records its input/output
+# shapes, and counts persons and heads on the test images with the model card's own settings
+# (BGR, ÷255, letterbox with 114 padding, conf 0.2, NMS IoU 0.6). The accuracy comparison is T3.5.
+
+# %%
+from huggingface_hub import hf_hub_download
+
+
+def letterbox(bgr: np.ndarray, h_in: int, w_in: int) -> tuple[np.ndarray, float, int, int]:
+    """Resize keeping aspect ratio and pad with 114 (model card preprocessing)."""
+    h, w = bgr.shape[:2]
+    s = min(w_in / w, h_in / h)
+    nh, nw = int(round(h * s)), int(round(w * s))
+    canvas = np.full((h_in, w_in, 3), 114, np.uint8)
+    top, left = (h_in - nh) // 2, (w_in - nw) // 2
+    canvas[top:top + nh, left:left + nw] = cv2.resize(bgr, (nw, nh))
+    return canvas, s, left, top
+
+
+def phd_counts(sess, bgr: np.ndarray) -> dict:
+    """Run the person+head ONNX model; return per-class counts after NMS."""
+    inp = sess.get_inputs()[0]
+    h_in, w_in = (int(inp.shape[2]), int(inp.shape[3])) if isinstance(inp.shape[2], int) else (640, 640)
+    canvas, _, _, _ = letterbox(bgr, h_in, w_in)
+    x = canvas.astype(np.float32).transpose(2, 0, 1)[None] / 255.0
+    preds = sess.run(None, {inp.name: x})[0][0].T            # (anchors, 4 + n_classes)
+    scores = preds[:, 4:]
+    cls = scores.argmax(1)
+    conf = scores.max(1)
+    keep = conf >= PHD_CONF
+    boxes = preds[keep, :4].copy()
+    boxes[:, :2] -= boxes[:, 2:] / 2                           # cx,cy,w,h -> x,y,w,h
+    idx = cv2.dnn.NMSBoxes(boxes.tolist(), conf[keep].tolist(), PHD_CONF, PHD_IOU)
+    idx = np.array(idx).reshape(-1)
+    kept_cls = cls[keep][idx] if len(idx) else np.array([], int)
+    return {PHD_CLASSES.get(int(k), str(k)): int((kept_cls == k).sum()) for k in PHD_CLASSES}
+
+
+def check_phd() -> dict:
+    """Download the CrowdHuman person+head ONNX model and smoke-test it."""
+    import onnxruntime as ort
+
+    src = Path(hf_hub_download(PHD_HF_REPO, PHD_HF_FILE, local_dir=CACHE / "phd"))
+    dst = ONNX_DIR / "yolo11s_crowdhuman_person_head.onnx"
+    shutil.copy(src, dst)
+    sess = ort.InferenceSession(str(dst), providers=["CPUExecutionProvider"])
+    io = {"inputs": [(i.name, i.shape) for i in sess.get_inputs()],
+          "outputs": [(o.name, o.shape) for o in sess.get_outputs()]}
+    imgs = {"bus.jpg": TEST_BGR}
+    for n in CLIPEBC_TEST_IMAGES:
+        p = CLIPEBC_DIR / n
+        if p.exists():
+            imgs[n] = cv2.imread(str(p))
+    checks = {n: phd_counts(sess, im) for n, im in imgs.items()}
+    save_meta("yolo11s_crowdhuman_person_head", {"source": f"Hugging Face {PHD_HF_REPO}/{PHD_HF_FILE}",
+                                                 "classes": PHD_CLASSES, "io": io,
+                                                 "input_format": "BGR, /255, letterbox pad 114, NCHW",
+                                                 "defaults": {"conf": PHD_CONF, "nms_iou": PHD_IOU},
+                                                 "license": "openrail++", "sha256": sha256(dst)})
+    return {"file": dst.name, "size_mb": round(dst.stat().st_size / 1e6, 1), "io": io, "checks": checks}
+
+
+record("yolo11s_crowdhuman_person_head", check_phd)
 
 # %% [markdown]
 # ## 8. GPU smoke timing

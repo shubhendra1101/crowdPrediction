@@ -31,7 +31,7 @@ Done when: every camera has a complete YAML.
 
 ### Weeks 2–3 — Counting, fusion, motion
 
-**Step 3a/3b. Zero-shot counting.** YOLO11l (COCO) vs CrowdHuman person+head model; CLIP-EBC ShanghaiTech-A vs NWPU checkpoints; optional APGCC; tiled inference on low-res cameras. Measure MAE per density band on user's test frames and on Jülich videos.
+**Step 3a/3b. Zero-shot counting.** YOLO11l (COCO) vs CrowdHuman person+head model; CLIP-EBC NWPU weights from Hugging Face (ShanghaiTech-A from GitHub optional); optional PET-Finetuned from Hugging Face; tiled inference on low-res cameras. Measure MAE per density band on user's test frames and on Jülich videos.
 Done when: a table of zero-shot errors exists. If CLIP-EBC error is poor → ask user before fine-tuning.
 
 **Step 3c/3d. Fusion and ablation.** Fit fusion weights on validation frames; EMA smoothing; ablation of 4 variants.
@@ -69,7 +69,7 @@ Done when: all tables filled and the demo runs end to end.
 2. GRU comparison → Chronos-2 vs baselines only.
 3. 5–10 minute horizons → 30–120 s only.
 4. Chronos-2 fine-tuning → zero-shot only; physics model as alert source if Chronos-2 is weak.
-5. APGCC and CrowdHuman YOLO comparisons → one detector, one density model.
+5. PET-Finetuned and CrowdHuman YOLO comparisons → one detector, one density model.
 
 Never cut: calibration in persons/m², the fusion ablation, lead-time evaluation, the replay demo.
 

@@ -6,7 +6,7 @@ This file is read automatically at the start of every session. Follow it over an
 
 CrowdSafe is a research project and working demo: an AI system that **forecasts crowd density and stampede risk per zone, minutes ahead, and raises tiered early-warning alerts** from fixed CCTV cameras.
 
-It is a new project built from scratch in this repo (the earlier YOLO11m + CSRNet version is not reused; see `docs/decisions.md` D2). GPU work runs as notebooks the user executes on the college A100 via Kubeflow (D3).
+It extends the existing CrowdSafe repo (YOLO11m + CSRNet counting, streamed to a Next.js dashboard).
 
 Core idea, in one line: calibrated persons/m² per zone + crowd-motion precursors (flow collapse, turbulence/crowd pressure) + a pretrained forecaster → alerts with lead time.
 
@@ -29,10 +29,11 @@ Read these before doing anything substantial:
 
 | Part | Choice |
 | --- | --- |
-| Detection | YOLO11l (Ultralytics, COCO) or a CrowdHuman person+head YOLO; pick by measured error |
+| Detection | YOLO11l (Ultralytics, COCO) or the CrowdHuman YOLO11 person+head model on Hugging Face (`Sharath33/Person`); pick by measured error |
 | Tracking | ByteTrack (Ultralytics / Supervision) |
 | Tiling for small heads | Supervision `InferenceSlicer` |
-| Density counting | CLIP-EBC ViT-B/16 released weights (GitHub releases); APGCC optional |
+| Density counting | CLIP-EBC ViT-B/16, official Hugging Face repo `Yiming-M/CLIP-EBC` (`nwpu_weights/`; copy loading/inference from its `app.py`). ShanghaiTech checkpoints only on GitHub releases, optional. Optional point counter: PET-Finetuned from Hugging Face (`Awiros/crowd-counting-and-localization`, run with the official PET code) |
+| Model sourcing rule | Prefer Hugging Face or pip-installable weights. If a model's weights exist only on GitHub or Google Drive, look for a Hugging Face alternative first and ask the user before using the GitHub-only one |
 | Zones / lines / homography | Supervision `PolygonZone`, `LineZone`, `ViewTransformer` pattern; OpenCV; Shapely |
 | Optical flow | RAFT (`torchvision.models.optical_flow`, pretrained); Farneback fallback |
 | Trajectory analysis | PedPy |
@@ -41,35 +42,29 @@ Read these before doing anything substantial:
 | Uncertainty | Chronos-2 quantiles + split conformal calibration |
 | Anomaly | scikit-learn Isolation Forest |
 | Backend | FastAPI + WebSocket |
-| Frontend | Next.js dashboard (new build) |
-| Model exchange | ONNX files exported on the A100 (D3) |
+| Frontend | existing Next.js dashboard |
 | Storage | Parquet (experiments), SQLite (live demo) |
 
 ## 4. Repository layout
 
-Python modules live in the `crowdsafe/` package (import as `crowdsafe.counting` etc.) so that `datasets/` cannot shadow Hugging Face's `datasets` library. See `docs/decisions.md` D1.
-
 ```
-<repo root>/
+crowdsafe/
 ├── configs/          # one YAML per camera: homography, zones, adjacency, boundaries, thresholds
-├── crowdsafe/        # Python package
-│   ├── calibration/  # homography + zone tools
-│   ├── counting/     # yolo_track.py, density_model.py, fusion.py
-│   ├── motion/       # flow.py, zone_motion.py
-│   ├── features/     # schema.py, logger.py
-│   ├── datasets/     # loaders: julich.py, public_video.py, cctv.py
-│   ├── simulation/   # jupedsim scenarios -> same feature schema
-│   ├── forecasting/  # baselines.py, chronos.py, gru.py (optional), conformal.py
-│   ├── risk/         # rules.py, anomaly.py, alerts.py
-│   ├── server/       # FastAPI + WebSocket
-│   └── eval/         # metrics, ablations, figures
-├── notebooks/        # GPU notebooks run by the user on the college A100 (Kubeflow); src/ holds editable sources
-├── dashboard/        # Next.js app (new build)
-├── docs/             # decisions.md: record of changes to the plan/stack
+├── calibration/      # homography + zone tools
+├── counting/         # yolo_track.py, density_model.py, fusion.py
+├── motion/           # flow.py, zone_motion.py
+├── features/         # schema.py, logger.py
+├── datasets/         # loaders: julich.py, public_video.py, cctv.py
+├── simulation/       # jupedsim scenarios -> same feature schema
+├── forecasting/      # baselines.py, chronos.py, gru.py (optional), conformal.py
+├── risk/             # rules.py, anomaly.py, alerts.py
+├── server/           # FastAPI + WebSocket
+├── dashboard/        # existing Next.js app
+├── eval/             # metrics, ablations, figures
 ├── scripts/          # CLI entry points
 ├── tests/
 ├── data/             # NOT committed (gitignored)
-├── weights/          # NOT committed (gitignored); ONNX models returned from the A100 go here
+├── weights/          # NOT committed (gitignored)
 └── results/          # metric tables + figures (small files only)
 ```
 

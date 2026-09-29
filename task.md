@@ -11,17 +11,16 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T0 Setup and baseline
 
-- [x] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
-  Result: 2026-09-30 — folder contains planning docs only; no YOLO11m + CSRNet code or Next.js dashboard present. Started as a new repo.
-- [x] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
-  Result: 2026-09-30 — laptop: Python 3.11.9, torch 2.0.1+cpu, Intel UHD only (no CUDA), 7.8 GB RAM, 34 GB free disk. A100 = college machine via Kubeflow notebooks (D3); its specs are checked by `notebooks/01_env_and_onnx_export.ipynb` (pending run).
-- [x] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
-  Result: 2026-09-30 — user confirmed all accounts exist.
-- [x] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
-  Result: 2026-09-30 — git repo initialised; layout, `.gitignore`, `requirements.txt`, `pyproject.toml`, `configs/cam_template.yaml`; smoke test 11 passed.
-- [x] ~~**T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).~~
-  Result: 2026-09-30 — DROPPED by user (new project, old implementation not reused; `docs/decisions.md` D2). Hard-switch ablation row will be re-implemented.
-- [ ] **T0.6 (BOTH)** Run `notebooks/01_env_and_onnx_export.ipynb` on the A100: environment report + ONNX exports of YOLO11l, RAFT-large, CLIP-EBC ViT-B/16 (SHA and NWPU), each checked against PyTorch.
+- [ ] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
+  Result:
+- [ ] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
+  Result:
+- [ ] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
+  Result:
+- [ ] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
+  Result:
+- [ ] **T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).
+  Needs: at least 3 clips with some ground truth (public dataset clips are fine).
   Result:
 
 ### T1 Data and CCTV quality
@@ -67,11 +66,11 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 - [ ] **T3.1 (AGENT)** Detector wrapper: YOLO11l (COCO, person) + ByteTrack; option for `InferenceSlicer` tiling.
   Result:
-- [ ] **T3.2 (AGENT)** Try a CrowdHuman person+head YOLO from Hugging Face; ask user before choosing if results are close.
+- [ ] **T3.2 (AGENT)** Try the CrowdHuman YOLO11 person+head model from Hugging Face (`Sharath33/Person`, ONNX); ask user before choosing if results are close.
   Result:
-- [ ] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 released weights (ShanghaiTech-A and NWPU checkpoints) with sliding-window inference.
+- [ ] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 NWPU weights from the official Hugging Face repo `Yiming-M/CLIP-EBC` (`huggingface_hub.snapshot_download`), adapting model loading and sliding-window inference from its `app.py`. Optionally compare the ShanghaiTech-A checkpoint from GitHub releases.
   Result:
-- [ ] **T3.4 (AGENT, optional)** APGCC with ShanghaiTech weights.
+- [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
 - [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
   Result:
@@ -180,5 +179,4 @@ The agent keeps this list current.
 
 | Task | Waiting for | Asked on |
 | --- | --- | --- |
-| T0.6 | User runs notebook 01 on the A100 and returns `crowdsafe_nb01_outputs.zip` | 2026-09-30 |
-| T1.2, T2.1, T2.2 | CCTV footage, floor measurements, venue layout | 2026-09-30 |
+|  |  |  |

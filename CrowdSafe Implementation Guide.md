@@ -35,9 +35,9 @@ Every model in this plan has open-source pretrained weights, so you start with i
 | --- | --- | --- | --- |
 | Zones, line crossing, pixel-to-metre | [Roboflow Supervision](https://supervision.roboflow.com/latest/how_to/count_in_zone/): `PolygonZone`, `LineZone`, and the `ViewTransformer` pattern from its [speed-estimation example](https://github.com/roboflow/supervision/tree/develop/examples/speed_estimation) | — | — |
 | Person detection | [YOLO11](https://huggingface.co/Ultralytics/YOLO11) (Ultralytics) | COCO | CrowdHuman, then your CCTV |
-| Person + head detection in crowds | Community CrowdHuman-trained YOLO, e.g. [a YOLO11 person + head model](https://huggingface.co/Sharath33/Person/blob/main/README.md) or [a YOLOv8 head detector](https://github.com/Owen718/Head-Detection-Yolov8) | CrowdHuman | Your CCTV |
+| Person + head detection in crowds | Community CrowdHuman-trained [YOLO11 person + head model](https://huggingface.co/Sharath33/Person/blob/main/README.md) on Hugging Face | CrowdHuman | Your CCTV |
 | Tracking | ByteTrack (built into Ultralytics and Supervision) | — | — |
-| Density counting | [CLIP-EBC](https://github.com/Yiming-M/CLIP-EBC): weights on its releases page, including ViT-B/16 | ShanghaiTech, UCF-QNRF, NWPU-Crowd | Your CCTV, with its own `trainer.py` |
+| Density counting | [CLIP-EBC](https://github.com/Yiming-M/CLIP-EBC): official Hugging Face repo Yiming-M/CLIP-EBC (NWPU weights, ViT-B/16); ShanghaiTech weights on GitHub releases | ShanghaiTech, UCF-QNRF, NWPU-Crowd | Your CCTV, with its own `trainer.py` |
 | Optical flow | RAFT in `torchvision.models.optical_flow` | Ships pretrained | Rarely needed |
 | Real high-density data with ground truth | [Jülich Pedestrian Dynamics Data Archive](https://www.re3data.org/repository/r3d100013370): videos plus every person's trajectory | Lab experiments (bottleneck, corridor, entrance, platform) | — |
 | Density, speed and flow from trajectories | PedPy (Jülich's analysis library) | — | — |
@@ -49,7 +49,7 @@ Reusing these doesn't weaken the research: your contribution is the reliability-
 
 ## Requirements: what to download, collect and set up
 
-Most models download automatically in code; the real work on your side is collecting CCTV clips, floor measurements and venue layouts. Not everything is on Hugging Face: CLIP-EBC and APGCC weights come from GitHub, and RAFT ships inside torchvision.
+Most models download automatically in code; the real work on your side is collecting CCTV clips, floor measurements and venue layouts. Not everything is on Hugging Face: CLIP-EBC's optional ShanghaiTech checkpoints and the PET model code come from GitHub, and RAFT ships inside torchvision.
 
 ### 1. Accounts and setup
 
@@ -65,8 +65,8 @@ Most models download automatically in code; the real work on your side is collec
 | --- | --- | --- |
 | YOLO11l (person) | Ultralytics, also on Hugging Face | Auto-downloads: `YOLO('yolo11l.pt')` |
 | CrowdHuman person + head YOLO | Hugging Face / GitHub (community) | Download weights from the model page |
-| CLIP-EBC ViT-B/16 | GitHub releases page of Yiming-M/CLIP-EBC | Download the `.pth` checkpoints manually |
-| APGCC (optional) | Its GitHub repository | Download the ShanghaiTech checkpoint |
+| CLIP-EBC ViT-B/16 | Hugging Face Yiming-M/CLIP-EBC (nwpu\_weights folder) | `huggingface_hub.snapshot_download; copy loading code from its app.p`y |
+| PET-Finetuned point counter (optional) | Hugging Face Awiros/crowd-counting-and-localization | Download the safetensors file; run it with the official PET code |
 | RAFT optical flow | torchvision | Auto-downloads: `raft_large(weights=Raft_Large_Weights.DEFAULT)` |
 | Chronos-2 | Hugging Face `amazon/chronos-2` | Auto-downloads through `chronos-forecasting` |
 
@@ -178,7 +178,7 @@ Avoid heavy super-resolution: it adds latency and can invent heads that are not 
 **1c. Annotate your own footage**
 
 1. Sample 200–300 frames, at least 5 seconds apart, across different crowd levels, times of day and cameras. Start with about 100 as a test set; label the rest only if you end up fine-tuning.
-2. Pre-label instead of labelling from scratch: run CLIP-EBC (or APGCC) to get head points, import them into CVAT (point mode), and only fix the mistakes. That should take roughly 5–8 hours per 100 frames.
+2. Pre-label instead of labelling from scratch: run CLIP-EBC (or PET-Finetuned) to get head points, import them into CVAT (point mode), and only fix the mistakes. That should take roughly 5–8 hours per 100 frames.
 3. Split by camera, not by frame: keep at least one whole camera out as the test set, so results show generalisation.
 
 **Done when:** a camera audit table exists and annotated frames are split into train / validation / test.
@@ -225,9 +225,9 @@ Two counters run side by side, and a learned per-zone weight decides how much to
 
 **3b. Density model (dense zones)**
 
-- Primary: **CLIP-EBC released weights** (ViT-B/16) from the repo's releases page. Wrap its model loading and sliding-window inference as `counting/density_model.py`.
+- Primary: **CLIP-EBC released weights** (ViT-B/16) from the author's official Hugging Face repo (NWPU weights). Adapt model loading and sliding-window inference from its app.py and wrap them as `counting/density_model.py`.
 - Compare its ShanghaiTech-A and NWPU checkpoints zero-shot on your test frames and keep the better one.
-- Alternative: **APGCC** with its ShanghaiTech weights, if you want head point locations. It over-counts sparse scenes without fine-tuning.
+- Alternative: **PET-Finetuned from Hugging Face (Awiros/crowd-counting-and-localization), if you want head point locations; it runs with the official PET code**.
 - Fine-tune later with CLIP-EBC's own `trainer.py`: export your CVAT points in ShanghaiTech layout (images plus point files) and train from the released checkpoint.
 - Zone count = sum of the density map inside the zone polygon.
 
@@ -448,4 +448,4 @@ Week 3 runs fusion and motion in parallel; weeks 4–7 each depend on the step b
 - [Supervision speed-estimation example (ViewTransformer)](https://github.com/roboflow/supervision/tree/develop/examples/speed_estimation)
 - [YOLO11, Ultralytics on Hugging Face](https://huggingface.co/Ultralytics/YOLO11)
 - [YOLO11 person + head model trained on CrowdHuman](https://huggingface.co/Sharath33/Person/blob/main/README.md)
-- [YOLOv8 head detector trained on CrowdHuman](https://github.com/Owen718/Head-Detection-Yolov8)
+- [PET-Finetuned crowd counting and localization, Hugging Face](https://huggingface.co/Awiros/crowd-counting-and-localization)

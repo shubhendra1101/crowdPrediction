@@ -37,7 +37,7 @@ flowchart TD
 ### 2.2 Counting and fusion (`counting/`)
 
 - `yolo_track.py`: YOLO11l (or CrowdHuman person+head model) + ByteTrack; optional `InferenceSlicer` tiling for small heads.
-- `density_model.py`: CLIP-EBC ViT-B/16 released weights; sliding-window inference; returns a density map.
+- `density_model.py`: CLIP-EBC ViT-B/16, NWPU weights from the official Hugging Face repo `Yiming-M/CLIP-EBC` (loading code adapted from its `app.py`); sliding-window inference; returns a density map.
 - `fusion.py`: per-zone confidence-weighted fusion.
 
 Fused zone count:
