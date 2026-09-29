@@ -11,16 +11,17 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T0 Setup and baseline
 
-- [ ] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
-  Result:
-- [ ] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
-  Result:
-- [ ] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
-  Result:
-- [ ] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
-  Result:
-- [ ] **T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).
-  Needs: at least 3 clips with some ground truth (public dataset clips are fine).
+- [x] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
+  Result: 2026-09-30 — folder contained planning docs only; no earlier code. New project (`docs/decisions.md` D2).
+- [x] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
+  Result: 2026-09-30 — laptop: Python 3.11.9, torch 2.0.1+cpu, no CUDA, 7.8 GB RAM, 34 GB free. A100 = college, via Kubeflow notebooks (D3); A100 specs pending notebook 01 (T0.6).
+- [x] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
+  Result: 2026-09-30 — user confirmed all accounts exist.
+- [x] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
+  Result: 2026-09-30 — git repo + GitHub remote; modules in `crowdsafe/` package (D1); `.gitignore`, `requirements.txt`, `pyproject.toml`, camera template; tests pass.
+- [x] ~~**T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).~~
+  Result: 2026-09-30 — DROPPED by user: new project, old implementation not reused (D2). Hard-switch ablation row will be re-implemented.
+- [ ] **T0.6 (BOTH)** Run `notebooks/01_env_and_onnx_export.ipynb` on the A100: environment report; ONNX of YOLO11l, RAFT-large, CLIP-EBC ViT-B/16 NWPU (HF); smoke test of `Sharath33/Person`.
   Result:
 
 ### T1 Data and CCTV quality
@@ -28,7 +29,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T1.1 (BOTH)** Start downloads. Agent gives links and exact commands; user completes any registration/request forms.
   Must: Jülich archive (bottleneck, corridor, entrance, platform experiments), ShanghaiTech A/B.
   Should: JHU-Crowd++, Mall, UCSD. Nice: FDST, NWPU-Crowd. Agent asks before any single download > 5 GB.
-  Result:
+  Result: 2026-09-30 — registry `configs/datasets.yaml` + downloader (`scripts/download_data.py`). Laptop: 8 Jülich experiments, trajectories + metadata, 145 txt files, 1.67 GB → `results/julich_inventory.md` (units mixed m/cm, 16/25/50 fps). A100 download (videos, ShanghaiTech, JHU, Mall, UCSD) = `notebooks/02_download_datasets.ipynb`, pending run. FDST/NWPU not fetched (manual/registration).
 - [ ] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
   Result:
 - [ ] **T1.3 (USER, optional)** Own recordings: tripod at a high point looking down, 1080p, 25–30 fps, no zoom/pan, crowded times.
@@ -179,4 +180,5 @@ The agent keeps this list current.
 
 | Task | Waiting for | Asked on |
 | --- | --- | --- |
-|  |  |  |
+| T0.6 | User runs notebook 01 on the A100 and returns the two zips | 2026-09-30 |
+| T1.2, T2.1, T2.2 | CCTV footage, floor measurements, venue layout | 2026-09-30 |

@@ -1,0 +1,209 @@
+[
+  {
+    "name": "julich_bottleneck1",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/2005bottleneck1_metadata.json",
+        "role": "metadata",
+        "bytes": 20896,
+        "sha256": "03d95ccf4d5e1716fca9c0107a0f14fd8b83881d70c4737b41fa85a879f9eef7"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 92656,
+        "sha256": "59b11bda136d4660e61a623900e7f0f3028254f3d07c8da2997f2f44537bce46",
+        "extracted_members": 16
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_bottleneck2",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_metadata.json",
+        "role": "metadata",
+        "bytes": 25537,
+        "sha256": "517a9813d4c420464c2608ed6bd1c2b7648e13f9a018671c784a5f8c8118634f"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 11485217,
+        "sha256": "a66ed94acd83a96b69d16e1d27e9fadfd98a864787f7eaa5af6da44d9d4caef7",
+        "extracted_members": 13
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_corridor_uni_2009",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_open_metadata.json",
+        "role": "metadata",
+        "bytes": 30198,
+        "sha256": "34b4992ff11c631da957ff97215b1247912d2cbeb98097c325c7e8124a09b781"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_open_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 17837801,
+        "sha256": "dd57948f026440d1c0f0aa947e7ec474861c6a549d235d394fa1a6d8deb05a31",
+        "extracted_members": 29
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_closed_metadata.json",
+        "role": "metadata",
+        "bytes": 19084,
+        "sha256": "0967ea58931a968d8a64535258b135e70adec5bd19a9b6459b818b9dd8b5774a"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_closed_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 18128181,
+        "sha256": "d04855e579809430d42998c64d9c16f29f0ce138f533f1c99b0b19edfd77433f",
+        "extracted_members": 24
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_corridor_bi_2009",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_free_metadata.json",
+        "role": "metadata",
+        "bytes": 10379,
+        "sha256": "e0046613523d493cb03600196f318c703773fdb9d20c87b0d7ff720358c7ab1f"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_free_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 2571523,
+        "sha256": "d92d1e1531c4313469bbfca6993965e5bfe679923619e68ac05e3d9c19184333",
+        "extracted_members": 5
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_symmetric_metadata.json",
+        "role": "metadata",
+        "bytes": 18219,
+        "sha256": "a800b9a31c4068fb764cc92416b40d07e53a25b72aaa98259697a8158bf7b4a7"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_symmetric_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 7369438,
+        "sha256": "c540ee12c6f1f9b98bba802ef0a54a5965d39b3f3a88bfa804c46c0c0417e0d7",
+        "extracted_members": 13
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_asymmetric_metadata.json",
+        "role": "metadata",
+        "bytes": 11558,
+        "sha256": "17b783e89ee26c34e817915477bb8593ca748c1e79d952ad20092f8eb882bb58"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_asymmetric_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 1804149,
+        "sha256": "733889922956acbaf11cbfb28b6e5f3b57b26ef87448e3ef72b9e0774eb5e68a",
+        "extracted_members": 6
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_corridor_uni_2013",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013unidirectional/2013unidirectional_metadata.json",
+        "role": "metadata",
+        "bytes": 12120,
+        "sha256": "2c1635c73225f8bb36291adeefd4db5831f64c2ced7da5793c266acf0ec3d2c2"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013unidirectional/2013unidirectional_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 24769703,
+        "sha256": "53832a705358110eb3abe1acd99b7d1b252baced0c0ec6a8ccdad36aa544b787",
+        "extracted_members": 9
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_entrance_semicircle",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_semicircle/2013entrance_semicircle_metadata.json",
+        "role": "metadata",
+        "bytes": 4888,
+        "sha256": "05e7e08bf4aa1ea185c79adb6a2ac626f06632eca74c3b66b3aec09f5d5a7b91"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_semicircle/2013entrance_semicircle_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 5554948,
+        "sha256": "61a8cf3f9256f6e05ff9c529802bdd0f1a9e599061e23d6a2b1b12db70c83832",
+        "extracted_members": 1
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_entrance_corridor",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_corridor/2013entrance_corridor_metadata.json",
+        "role": "metadata",
+        "bytes": 3736,
+        "sha256": "012ede37a8d35a61cc049eb88f9fe2365f4e8eea3d96053436cb213abe5e0a38"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_corridor/2013entrance_corridor_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 4746325,
+        "sha256": "2209818d89450c4168f83d4a68a7478c79366d02ea0316eec36684f428588d23",
+        "extracted_members": 2
+      }
+    ],
+    "expect": {},
+    "error": null
+  },
+  {
+    "name": "julich_train_platform",
+    "status": "ok",
+    "files": [
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2021.10.08_Duesseldorf_MEH_CroMa/data/2021train_platform_waiting/2021train_platform_metadata.json",
+        "role": "metadata",
+        "bytes": 38449,
+        "sha256": "3494fb1f55f145ddcc3790f172304af86eba36afdee89dd290adf4df8b83a5a9"
+      },
+      {
+        "url": "http://ped.fz-juelich.de/experiments/2021.10.08_Duesseldorf_MEH_CroMa/data/2021train_platform_waiting/2021train_platform_trajectories_txt.zip",
+        "role": "trajectories",
+        "bytes": 200174047,
+        "sha256": "97948b3eb3deb86c0749b5c1c3eb815302ef94c1608be3094de39310a46f7d03",
+        "extracted_members": 27
+      }
+    ],
+    "expect": {},
+    "error": null
+  }
+]

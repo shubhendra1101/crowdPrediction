@@ -1,0 +1,160 @@
+# Dataset registry (T1.1). Read by scripts/download_data.py.
+# Sources verified 2026-09-30. Kaggle entries are community mirrors of the official datasets:
+# their file counts are checked against the official split sizes (`expect`) after download.
+# Roles let a machine skip what it doesn't need (e.g. the laptop fetches only trajectories + metadata).
+
+max_single_download_gb: 5          # CLAUDE.md §6: ask before anything larger
+
+datasets:
+  # ---------------- Jülich Pedestrian Dynamics Data Archive (must) ----------------
+  # https://ped.fz-juelich.de/da/ — no registration; cite the DOI of each experiment.
+  julich_bottleneck1:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2005.2
+    note: "Rotunde bottleneck 2005, 25 fps; archive page: ID, time, x [m], y [m]"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/2005bottleneck1_metadata.json"}
+      - {role: trajectories, size_mb: 0.1, url: "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/trajectories_txt.zip"}
+      - {role: video, size_mb: 618, url: "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/topview_video_start.zip"}
+      - {role: video, size_mb: 49.5, url: "http://ped.fz-juelich.de/experiments/2005.12.07_Juelich_Rotunde_Bottleneck/data/topview_video.zip"}
+
+  julich_bottleneck2:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2006.2
+    note: "Düsseldorf caserne 2006, 25 fps, two cameras (wmv)"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_metadata.json"}
+      - {role: trajectories, size_mb: 11.0, url: "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_trajectories_txt.zip"}
+      - {role: video, size_mb: 246, url: "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_videos_cam1.zip"}
+      - {role: video, size_mb: 270, url: "http://ped.fz-juelich.de/experiments/2006.11.27_Duesseldorf_Casern/data/eg/2006bottleneck2_videos_cam2.zip"}
+
+  julich_corridor_uni_2009:
+    group: must
+    source: julich
+    doi: [10.34735/ped.2009.14, 10.34735/ped.2009.13]
+    note: "corridor3: unidirectional, open + closed boundary, Düsseldorf Messe 2009, 16 fps; archive page: x,y,z [cm]"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_open_metadata.json"}
+      - {role: trajectories, size_mb: 17.0, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_open_trajectories_txt.zip"}
+      - {role: video, size_mb: 719, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/export/converted/zip/uo.zip"}
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_closed_metadata.json"}
+      - {role: trajectories, size_mb: 17.3, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009unidirectional_closed_trajectories_txt.zip"}
+
+  julich_corridor_bi_2009:
+    group: must
+    source: julich
+    doi: [10.34735/ped.2009.12, 10.34735/ped.2009.11, 10.34735/ped.2009.10]
+    note: "corridor4: bidirectional (counter-flow) free / symmetric / asymmetric, 2009, 16 fps; archive page: x,y,z [cm]"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_free_metadata.json"}
+      - {role: trajectories, size_mb: 2.5, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_free_trajectories_txt.zip"}
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_symmetric_metadata.json"}
+      - {role: trajectories, size_mb: 7.0, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_symmetric_trajectories_txt.zip"}
+      - {role: video, size_mb: 252, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/export/converted/zip/2009bidirectional_symmetric_videos.zip"}
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_asymmetric_metadata.json"}
+      - {role: trajectories, size_mb: 1.7, url: "http://ped.fz-juelich.de/experiments/2009.05.12_Duesseldorf_Messe_Hermes/data/zip/2009bidirectional_asymmetric_trajectories_txt.zip"}
+
+  julich_corridor_uni_2013:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2013.6
+    note: "corridor5: BaSiGo unidirectional, Düsseldorf Messe 2013, trajectories 16 fps, centre video 25 fps"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013unidirectional/2013unidirectional_metadata.json"}
+      - {role: trajectories, size_mb: 23.6, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013unidirectional/2013unidirectional_trajectories_txt.zip"}
+      - {role: video, size_mb: 1400, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013unidirectional/2013unidirectional_videos_centerview.zip"}
+
+  julich_entrance_semicircle:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2013.2
+    note: "BaSiGo entrance without barriers, 25 runs, 25 fps; archive page: x,y,z [cm]"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_semicircle/2013entrance_semicircle_metadata.json"}
+      - {role: trajectories, size_mb: 5.3, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_semicircle/2013entrance_semicircle_trajectories_txt.zip"}
+      - {role: video, size_mb: 388, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_semicircle/2013entrance_semicircle_video.zip"}
+
+  julich_entrance_corridor:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2013.1
+    note: "BaSiGo entrance with queuing barriers, 25 runs, 25 fps; archive page: x,y,z [cm]"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_corridor/2013entrance_corridor_metadata.json"}
+      - {role: trajectories, size_mb: 4.5, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_corridor/2013entrance_corridor_trajectories_txt.zip"}
+      - {role: video, size_mb: 587, url: "http://ped.fz-juelich.de/experiments/2013.06.19_Duesseldorf_Messe_BaSiGo/data/2013entrance_corridor/2013entrance_corridor_videos.zip"}
+
+  julich_train_platform:
+    group: must
+    source: julich
+    doi: 10.34735/ped.2021.3
+    note: "CroMa waiting on a 7x20 m platform, 27 runs, trajectories 50 fps, video 25 fps"
+    license: "Free for research with attribution (archive terms)"
+    files:
+      - {role: metadata, url: "http://ped.fz-juelich.de/experiments/2021.10.08_Duesseldorf_MEH_CroMa/data/2021train_platform_waiting/2021train_platform_metadata.json"}
+      - {role: trajectories, size_mb: 188, url: "http://ped.fz-juelich.de/experiments/2021.10.08_Duesseldorf_MEH_CroMa/data/2021train_platform_waiting/2021train_platform_trajectories_txt.zip"}
+      - {role: video, size_mb: 1710, url: "http://ped.fz-juelich.de/experiments/2021.10.08_Duesseldorf_MEH_CroMa/data/2021train_platform_waiting/2021train_platform_videos.zip"}
+
+  # ---------------- Crowd-counting image benchmarks ----------------
+  shanghaitech:
+    group: must
+    source: kaggle
+    kaggle: tthien/shanghaitech
+    size_mb: 349
+    note: "Mirror of ShanghaiTech A/B (Zhang et al., CVPR 2016). Official split sizes checked below."
+    license: "Research use (original dataset terms); Kaggle page: Unknown"
+    files:
+      - {role: images}
+    expect:
+      "**/part_A*/train_data/images/*.jpg": 300
+      "**/part_A*/test_data/images/*.jpg": 182
+      "**/part_B*/train_data/images/*.jpg": 400
+      "**/part_B*/test_data/images/*.jpg": 316
+
+  jhu_crowd_v2:
+    group: should
+    source: kaggle
+    kaggle: hibafathi/jhu-crowd-v2-0
+    size_mb: 3084
+    note: "Mirror of JHU-Crowd++ v2.0 (Sindagi et al., TPAMI 2020); official site needs a request. Split sizes checked below."
+    license: "CC BY-NC-SA 4.0 per Kaggle page"
+    files:
+      - {role: images}
+    expect:
+      "**/train/images/*.jpg": 2272
+      "**/val/images/*.jpg": 500
+      "**/test/images/*.jpg": 1600
+
+  # ---------------- Video sequences ----------------
+  mall:
+    group: should
+    source: http
+    note: "CUHK Mall dataset (Chen et al., BMVC 2012): 2000 frames 640x480, < 2 Hz, head points. Research use only."
+    license: "Research only, non-commercial, cite"
+    files:
+      - {role: images, url: "https://personal.ie.cuhk.edu.hk/~ccloy/files/datasets/mall_dataset.zip"}
+    expect:
+      "**/frames/*.jpg": 2000
+
+  ucsd_pedestrian:
+    group: should
+    source: kaggle
+    kaggle: aryashah2k/ucsd-pedestrian-database
+    size_mb: 792
+    note: "Mirror of UCSD pedestrian counting (Chan et al., CVPR 2008); official svcl.ucsd.edu site did not respond 2026-09-30. Contents inventoried, not asserted."
+    license: "CC0 per Kaggle page; cite original"
+    files:
+      - {role: images}
+
+  # ---------------- Nice to have — manual, not fetched automatically ----------------
+  # FDST (Fang et al., ICME 2019): Google Drive link on its GitHub page — add later if needed.
+  # NWPU-Crowd: requires registration on its website — only if we decide to benchmark on it.
