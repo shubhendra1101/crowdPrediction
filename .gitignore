@@ -1,0 +1,36 @@
+# Large files never go into git (CLAUDE.md §5)
+data/
+weights/
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.mp4
+*.avi
+*.mkv
+*.parquet
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+kaggle.json
+
+# Node (dashboard)
+node_modules/
+.next/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

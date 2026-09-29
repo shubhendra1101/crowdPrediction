@@ -1,0 +1,39 @@
+# CrowdSafe — Python 3.11
+# Install PyTorch first with the CUDA build matching the A100 driver, e.g.:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch>=2.3
+torchvision>=0.18
+
+# Detection, tracking, zones, tiled inference
+ultralytics>=8.3
+supervision>=0.25
+
+# Geometry / calibration
+opencv-python>=4.10
+shapely>=2.0
+
+# Forecasting
+chronos-forecasting>=2.0
+# autogluon.timeseries   # optional: Chronos-2 fine-tuning (T6.5), ask first
+
+# Simulation and trajectory analysis
+jupedsim>=1.2
+pedpy>=1.1
+
+# ML / data
+scikit-learn>=1.5
+numpy>=1.26
+pandas>=2.2
+pyarrow>=16
+pyyaml>=6.0
+huggingface_hub>=0.24
+
+# Backend
+fastapi>=0.115
+uvicorn[standard]>=0.30
+websockets>=12
+
+# Dev
+pytest>=8.0
+
+# CLIP-EBC: install its own requirements from its repo (T3.3)

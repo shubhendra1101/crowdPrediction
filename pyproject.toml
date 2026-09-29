@@ -1,0 +1,10 @@
+[project]
+name = "crowdsafe"
+version = "0.1.0"
+description = "Zone-level crowd density and stampede-risk forecasting with early-warning alerts from fixed CCTV."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

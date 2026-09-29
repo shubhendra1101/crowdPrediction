@@ -1,0 +1,185 @@
+# task.md — CrowdSafe task checklist
+
+Source of truth for what to do next. The agent ticks tasks and writes the real result on the `Result:` line.
+
+**Owner:** `AGENT` = the coding agent does it · `USER` = only the user can do it · `BOTH` = agent prepares, user supplies or decides.
+**Rule:** if a task needs a USER input that isn't there, the agent stops, asks (see `CLAUDE.md` §6), and moves to another unblocked task.
+
+---
+
+## Week 1 — Foundation
+
+### T0 Setup and baseline
+
+- [x] **T0.1 (AGENT)** Inspect the existing repo; summarise what exists and what can be reused.
+  Result: 2026-09-30 — folder contains planning docs only; no YOLO11m + CSRNet code or Next.js dashboard present. Started as a new repo.
+- [x] **T0.2 (AGENT)** Check environment: Python, CUDA, GPU model/memory, free disk (need ~150 GB). Report gaps.
+  Result: 2026-09-30 — this laptop: Python 3.11.9, torch 2.0.1+cpu, Intel UHD only (no CUDA), 7.8 GB RAM (~1 GB free), 34 GB free disk. Gaps: no A100 here, disk < 150 GB. A100 machine not yet identified.
+- [ ] **T0.3 (USER)** Create accounts and set tokens as environment variables (not in chat): Hugging Face (`HF_TOKEN`), Kaggle (`~/.kaggle/kaggle.json`), CVAT (app.cvat.ai or local Docker).
+  Result:
+- [x] **T0.4 (AGENT)** Restructure repo to the layout in `CLAUDE.md` §4; add `.gitignore` for `data/`, `weights/`; `requirements.txt`; `pytest` setup.
+  Result: 2026-09-30 — git repo initialised; layout, `.gitignore`, `requirements.txt`, `pyproject.toml`, `configs/cam_template.yaml`; smoke test 11 passed.
+- [ ] **T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).
+  Needs: at least 3 clips with some ground truth (public dataset clips are fine).
+  Result:
+
+### T1 Data and CCTV quality
+
+- [ ] **T1.1 (BOTH)** Start downloads. Agent gives links and exact commands; user completes any registration/request forms.
+  Must: Jülich archive (bottleneck, corridor, entrance, platform experiments), ShanghaiTech A/B.
+  Should: JHU-Crowd++, Mall, UCSD. Nice: FDST, NWPU-Crowd. Agent asks before any single download > 5 GB.
+  Result:
+- [ ] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
+  Result:
+- [ ] **T1.3 (USER, optional)** Own recordings: tripod at a high point looking down, 1080p, 25–30 fps, no zoom/pan, crowded times.
+  Result:
+- [ ] **T1.4 (AGENT)** Camera audit script → `results/camera_audit.md` (resolution, head size in px, FPS, compression, brightness, angle, shake) with per-camera recommendations.
+  Needs: T1.2.
+  Result:
+- [ ] **T1.5 (AGENT)** Sample ~100 frames (≥ 5 s apart, varied density/time/camera); pre-label with CLIP-EBC; export to CVAT point format; write a 5-step guide for the user.
+  Needs: T1.2, T3.3 weights.
+  Result:
+- [ ] **T1.6 (USER)** Correct pre-labels in CVAT (~5–8 h) and export.
+  Result:
+- [ ] **T1.7 (AGENT)** Import labels; split train/val/test **by camera** (≥ 1 camera fully held out); write split file.
+  Result:
+
+### T2 Calibration and zones
+
+- [ ] **T2.1 (USER)** For each camera: one clear frame; 4+ floor points with real distances (tiles, marked rectangle, or taped markers); photos of the markers; 1 extra known distance for validation.
+  Agent gives exact instructions per camera before the user goes on site.
+  Result:
+- [ ] **T2.2 (USER)** Venue layout sketch: walkable areas, entrances/exits, which areas connect; widths of exits, gates, corridors, stairs in metres.
+  Result:
+- [ ] **T2.3 (AGENT)** Calibration tool (click points → homography) using the `ViewTransformer` pattern; save H to YAML.
+  Result:
+- [ ] **T2.4 (BOTH)** Draw zones with the Roboflow PolygonZone tool (agent explains; user or agent draws); compute areas with Shapely; add adjacency and boundaries from T2.2.
+  Result:
+- [ ] **T2.5 (AGENT)** Validate each camera with the unused distance (target < 10% error). Mark approximate calibrations as approximate.
+  Result:
+
+---
+
+## Weeks 2–3 — Counting, fusion, motion
+
+### T3 Counting and fusion
+
+- [ ] **T3.1 (AGENT)** Detector wrapper: YOLO11l (COCO, person) + ByteTrack; option for `InferenceSlicer` tiling.
+  Result:
+- [ ] **T3.2 (AGENT)** Try a CrowdHuman person+head YOLO from Hugging Face; ask user before choosing if results are close.
+  Result:
+- [ ] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 released weights (ShanghaiTech-A and NWPU checkpoints) with sliding-window inference.
+  Result:
+- [ ] **T3.4 (AGENT, optional)** APGCC with ShanghaiTech weights.
+  Result:
+- [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
+  Result:
+- [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
+  Result:
+- [ ] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
+  Result:
+- [ ] **T3.8 (AGENT)** Ablation: YOLO only / CLIP-EBC only / hard switch / weighted fusion on held-out camera → `results/fusion_ablation.md`.
+  Result:
+
+### T4 Motion features
+
+- [ ] **T4.1 (AGENT)** RAFT wrapper (`raft_large`, 3–5 FPS, ~960 px); Farneback fallback.
+  Result:
+- [ ] **T4.2 (AGENT)** Zone motion: flow → m/s via H; density mask; mean_speed, speed_var, pressure, dir_entropy, counterflow, inflow/outflow.
+  Result:
+- [ ] **T4.3 (AGENT)** Validate speeds against Jülich trajectories and ByteTrack tracks → `results/motion_validation.md`.
+  Result:
+
+---
+
+## Week 4 — Dataset
+
+### T5 Feature logging and simulation
+
+- [ ] **T5.1 (AGENT)** Feature schema + Parquet logger (`architecture.md` §2.4).
+  Result:
+- [ ] **T5.2 (AGENT)** Jülich loader: trajectories → PedPy → feature table, per zone.
+  Result:
+- [ ] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
+  Result:
+- [ ] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
+  Result:
+- [ ] **T5.5 (AGENT)** Split train/val/test by experiment, geometry and camera; write `results/dataset_summary.md`.
+  Result:
+
+---
+
+## Week 5 — Forecasting
+
+### T6 Forecasting
+
+- [ ] **T6.1 (AGENT)** Persistence and physics fill-rate baselines + time-to-critical.
+  Result:
+- [ ] **T6.2 (AGENT)** Chronos-2 zero-shot wrapper: zones as a group, motion features as covariates, quantiles 0.1/0.5/0.9.
+  Result:
+- [ ] **T6.3 (AGENT)** Split conformal calibration of the 90% bound.
+  Result:
+- [ ] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
+  Result:
+- [ ] **T6.5 (BOTH, optional)** If Chronos-2 is weak: agent proposes fine-tuning via AutoGluon with time estimate; user decides.
+  Result:
+- [ ] **T6.6 (AGENT, optional)** Per-zone GRU comparison.
+  Result:
+
+---
+
+## Week 6 — Risk engine and demo
+
+### T7 Risk engine and alerts
+
+- [ ] **T7.1 (AGENT)** Density bands on calibrated upper bound.
+  Result:
+- [ ] **T7.2 (AGENT)** Precursor rules; tune thresholds on Jülich + sim; write them to camera YAMLs.
+  Result:
+- [ ] **T7.3 (AGENT, optional)** Isolation Forest anomaly detector.
+  Result:
+- [ ] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
+  Result:
+- [ ] **T7.5 (USER)** Review default thresholds for the venue context (Indian crowd densities may justify different limits); confirm or adjust.
+  Result:
+
+### T8 Backend and dashboard
+
+- [ ] **T8.1 (AGENT)** Multiprocess runtime (decoder, counting, motion, features/forecast/risk).
+  Result:
+- [ ] **T8.2 (AGENT)** FastAPI WebSocket with the message schema in `architecture.md` §2.7.
+  Result:
+- [ ] **T8.3 (AGENT)** Dashboard: heatmap, forecast chart with band, alert feed, replay mode.
+  Result:
+- [ ] **T8.4 (USER)** Try the demo; list what looks wrong or unclear.
+  Result:
+
+---
+
+## Week 7 — Evaluation and write-up
+
+### T9 Evaluation
+
+- [ ] **T9.1 (AGENT)** Fill all metric tables (`architecture.md` §6) on held-out data.
+  Result:
+- [ ] **T9.2 (AGENT)** Runtime: latency, FPS per camera, GPU memory.
+  Result:
+- [ ] **T9.3 (AGENT)** Figures: heatmap frame, forecast chart, alert timeline from a run that turns critical.
+  Result:
+- [ ] **T9.4 (AGENT)** Draft methodology and results text from `results/` only; list citations for every model and dataset.
+  Result:
+- [ ] **T9.5 (USER)** Final review; rehearse the replay demo.
+  Result:
+
+---
+
+## Blocked / waiting on user
+
+The agent keeps this list current.
+
+| Task | Waiting for | Asked on |
+| --- | --- | --- |
+| T0.2 / all GPU work | Access details for the A100 machine (this laptop has no CUDA GPU) | 2026-09-30 |
+| T0.5 | Old YOLO11m + CSRNet code + dashboard (not in this folder), or decision to skip the baseline | 2026-09-30 |
+| T0.3 | HF / Kaggle / CVAT accounts set as env vars by user | 2026-09-30 |
+| T1.2, T2.1, T2.2 | CCTV footage, floor measurements, venue layout | 2026-09-30 |

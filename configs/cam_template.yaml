@@ -1,0 +1,19 @@
+# Camera config template (architecture.md §3).
+# Copy to configs/<camera_id>.yaml and fill in. Every null must come from a real
+# measurement or the user — never guessed. Mark estimated values as approximate
+# in calibration_note.
+camera_id: cam_template
+video: null                  # e.g. data/cctv/cam01.mp4
+fps: null                    # from video metadata
+homography: null             # 3x3, image px -> floor metres (T2.3)
+calibration_note: null       # e.g. "measured tiles 0.60 m" or "approximate: door width"
+zones: []                    # - {id: Z1, polygon_px: [[x, y], ...], area_m2: <computed by Shapely>}
+adjacency: []                # - [Z1, Z2]
+boundaries: []               # - {between: [Z1, Z2], line_px: [[x, y], [x, y]]}
+thresholds:                  # filled after tuning (T7)
+  pressure: null
+  dir_entropy: null
+  counterflow: null
+alerts:
+  raise_after_s: 10          # CLAUDE.md §9 default
+  clear_after_s: 30          # CLAUDE.md §9 default
