@@ -120,6 +120,22 @@ datasets:
       "**/part_B*/train_data/images/*.jpg": 400
       "**/part_B*/test_data/images/*.jpg": 316
 
+  shanghaitech_hf:              # used only if the Kaggle mirror cannot be reached (lab network)
+    group: fallback
+    source: hf_dataset
+    repo: KTAEHWA/shanghaitech-crowd-counting
+    convert: shanghaitech_parquet
+    size_mb: 1302
+    note: "HF parquet mirror of ShanghaiTech A/B with per-image head COUNTS only (no points). Split sizes checked below."
+    license: "Research use (original dataset terms)"
+    files:
+      - {role: images}
+    expect:
+      "**/part_A/train_data/images/*.jpg": 300
+      "**/part_A/test_data/images/*.jpg": 182
+      "**/part_B/train_data/images/*.jpg": 400
+      "**/part_B/test_data/images/*.jpg": 316
+
   jhu_crowd_v2:
     group: should
     source: kaggle

@@ -9,6 +9,7 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import json
+import re
 import shutil
 import ssl
 import time
@@ -118,6 +119,42 @@ def download_kaggle(ref: str, dst: Path) -> Path:
     return dst
 
 
+def download_hf_dataset(repo: str, dst: Path, allow_patterns: list[str] | None = None) -> Path:
+    """Snapshot a Hugging Face dataset repo into dst/_hf."""
+    from huggingface_hub import snapshot_download
+
+    return Path(snapshot_download(repo, repo_type="dataset", local_dir=dst / "_hf", allow_patterns=allow_patterns))
+
+
+def convert_shanghaitech_parquet(src: Path, out: Path) -> int:
+    """HF ``KTAEHWA/shanghaitech-crowd-counting`` parquet -> part_X/<split>_data/images/*.jpg + counts.csv.
+
+    That mirror stores head counts, not head points. Returns the number of images written.
+    """
+    import pandas as pd
+
+    n = 0
+    for pq in sorted(Path(src).rglob("*.parquet")):
+        m = re.search(r"(part_[AB])_(train|test)_data", pq.name)
+        if not m:
+            continue
+        split_dir = out / m[1] / f"{m[2]}_data"
+        (split_dir / "images").mkdir(parents=True, exist_ok=True)
+        df = pd.read_parquet(pq, columns=["file_name", "image", "count"])
+        rows = []
+        for r in df.itertuples(index=False):
+            img = r.image["bytes"] if isinstance(r.image, dict) else r.image
+            name = Path(str(r.file_name)).name
+            (split_dir / "images" / name).write_bytes(img)
+            rows.append({"file_name": name, "count": int(r.count)})
+            n += 1
+        pd.DataFrame(rows).to_csv(split_dir / "counts.csv", index=False)
+    return n
+
+
+CONVERTERS = {"shanghaitech_parquet": convert_shanghaitech_parquet}
+
+
 def check_expect(root: Path, expect: dict[str, int]) -> dict[str, dict]:
     """Count files matching each glob under root and compare with the expected number."""
     all_files = [p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()]
@@ -135,15 +172,25 @@ def fetch_dataset(name: str, entry: dict, root: Path, roles: list[str] | None,
     out = root / name
     t0 = time.time()
     try:
+        if entry["source"] in ("kaggle", "hf_dataset") and roles and \
+                not set(roles) & {f.get("role") for f in entry.get("files", [])}:
+            res.status = "skipped"
+            return res
         if entry["source"] == "kaggle":
-            if roles and not set(roles) & {f.get("role") for f in entry.get("files", [])}:
-                res.status = "skipped"
-                return res
             size_gb = entry.get("size_mb", 0) / 1000
             if size_gb > max_gb:
                 raise RuntimeError(f"{size_gb:.1f} GB > limit {max_gb} GB — ask the user first")
             download_kaggle(entry["kaggle"], out)
             res.files.append({"kaggle": entry["kaggle"]})
+        elif entry["source"] == "hf_dataset":
+            size_gb = entry.get("size_mb", 0) / 1000
+            if size_gb > max_gb:
+                raise RuntimeError(f"{size_gb:.1f} GB > limit {max_gb} GB — ask the user first")
+            src = download_hf_dataset(entry["repo"], out, entry.get("allow_patterns"))
+            rec = {"hf_dataset": entry["repo"]}
+            if entry.get("convert"):
+                rec["converted_images"] = CONVERTERS[entry["convert"]](src, out)
+            res.files.append(rec)
         else:
             for f in entry["files"]:
                 if roles and f.get("role") not in roles:

@@ -23,8 +23,8 @@ def test_registry_parses_and_has_must_datasets() -> None:
     assert "shanghaitech" in must
     assert any(k.startswith("julich_") for k in must)
     for name, entry in reg["datasets"].items():
-        assert entry["source"] in {"julich", "kaggle", "http"}, name
-        if entry["source"] != "kaggle":
+        assert entry["source"] in {"julich", "kaggle", "http", "hf_dataset"}, name
+        if entry["source"] in {"julich", "http"}:
             assert all(f["url"].startswith("http") for f in entry["files"]), name
 
 

@@ -1,7 +1,8 @@
 """ShanghaiTech Part A/B loader: images paired with head-point annotations (.mat).
 
 Layout (official and the Kaggle mirror): ``.../part_A/test_data/images/IMG_1.jpg`` with
-``.../part_A/test_data/ground-truth/GT_IMG_1.mat``.
+``.../part_A/test_data/ground-truth/GT_IMG_1.mat``. The Hugging Face fallback mirror has no point
+files; its per-image counts are in ``.../test_data/counts.csv`` (file_name, count).
 """
 from __future__ import annotations
 
@@ -16,11 +17,12 @@ class Sample:
     """One annotated image."""
 
     image: Path
-    points: np.ndarray          # (N, 2) head positions in pixels (x, y)
+    points: np.ndarray | None   # (N, 2) head positions in pixels (x, y); None if only a count is known
+    n: int | None = None        # annotated count when points are not available
 
     @property
     def count(self) -> int:
-        return len(self.points)
+        return len(self.points) if self.points is not None else int(self.n)
 
 
 def load_points(mat_path: Path) -> np.ndarray:
@@ -51,6 +53,12 @@ def list_split(root: Path, part: str, split: str = "test") -> list[Sample]:
     """All samples of one part (``"A"``/``"B"``) and split (``"train"``/``"test"``), sorted by image number."""
     d = find_split_dir(root, part, split)
     samples = []
+    if not (d / "ground-truth").exists() and (d / "counts.csv").exists():
+        import pandas as pd
+
+        counts = pd.read_csv(d / "counts.csv").set_index("file_name")["count"]
+        samples = [Sample(d / "images" / f, None, int(c)) for f, c in counts.items() if (d / "images" / f).exists()]
+        return sorted(samples, key=lambda s: int("".join(filter(str.isdigit, s.image.stem)) or 0))
     for img in (d / "images").glob("*.jpg"):
         gt = d / "ground-truth" / f"GT_{img.stem}.mat"
         if gt.exists():

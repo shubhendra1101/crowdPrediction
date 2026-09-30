@@ -59,9 +59,18 @@ class ChronosForecaster:
 
     def predict(self, history: pd.DataFrame, horizons: list[int]) -> pd.DataFrame:
         """Quantile forecasts of density per zone at the given horizons (seconds = steps at 1 Hz)."""
+        import inspect
+
         ctx, target = self._context(history)
-        pred = self.pipeline.predict_df(ctx, prediction_length=int(max(horizons)), quantile_levels=QUANTILES,
-                                        id_column="id", timestamp_column="timestamp", target=target)
+        kwargs = dict(prediction_length=int(max(horizons)), quantile_levels=QUANTILES,
+                      id_column="id", timestamp_column="timestamp", target=target)
+        params = inspect.signature(self.pipeline.predict_df).parameters
+        if not any(p.kind is p.VAR_KEYWORD for p in params.values()):
+            missing = [k for k in ("prediction_length", "target") if k not in params]
+            if missing:
+                raise TypeError(f"Chronos predict_df lacks {missing}; its parameters are {list(params)}")
+            kwargs = {k: v for k, v in kwargs.items() if k in params}
+        pred = self.pipeline.predict_df(ctx, **kwargs)
         return self._parse(pred, history["timestamp"].max(), horizons)
 
     def _parse(self, pred: pd.DataFrame, origin: float, horizons: list[int]) -> pd.DataFrame:
