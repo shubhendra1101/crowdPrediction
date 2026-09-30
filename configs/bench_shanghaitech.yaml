@@ -1,0 +1,32 @@
+# Zero-shot counting benchmark on ShanghaiTech (T3.5, part 1). Used by scripts/bench_counting.py.
+seed: 42
+dataset:
+  parts: [A, B]
+  split: test                  # 182 (A) + 316 (B) images
+# ShanghaiTech has no floor calibration, so bands are in PEOPLE PER IMAGE, not persons/m².
+count_bands: [50, 200, 500]
+
+models:
+  yolo11l_1280:                # COCO person detector, full image
+    type: yolo
+    weights: yolo11l.pt
+    imgsz: 1280
+    conf: 0.25
+  yolo11l_tiled640:            # same weights, 640 px tiles (sv.InferenceSlicer) for small heads
+    type: yolo
+    weights: yolo11l.pt
+    imgsz: 640
+    conf: 0.25
+    slice_wh: 640
+    overlap_px: 128
+  phd:                         # CrowdHuman YOLO11s person+head (ONNX); reports head and person counts
+    type: person_head
+    onnx: yolo11s_crowdhuman_person_head.onnx   # relative to --weights-dir
+    conf: 0.2                  # model card default
+    iou: 0.6                   # model card default
+  clipebc_window:              # CLIP-EBC ViT-B/16 NWPU, 224 px windows (repo evaluation style)
+    type: clipebc
+    mode: window
+  clipebc_whole:               # same model, whole image in one pass (app.py style)
+    type: clipebc
+    mode: whole

@@ -66,15 +66,15 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 ### T3 Counting and fusion
 
 - [ ] **T3.1 (AGENT)** Detector wrapper: YOLO11l (COCO, person) + ByteTrack; option for `InferenceSlicer` tiling.
-  Result:
+  Result: 2026-09-30 — wrapper `crowdsafe/counting/yolo_track.py` (YOLO + InferenceSlicer tiling + Ultralytics ByteTrack, reliability features); unit-tested; A100 run = notebook 03.
 - [ ] **T3.2 (AGENT)** Try the CrowdHuman YOLO11 person+head model from Hugging Face (`Sharath33/Person`, ONNX); ask user before choosing if results are close.
-  Result:
+  Result: 2026-09-30 — `PersonHeadOnnx` wrapper (model-card preprocessing, NMS) unit-tested; benchmark in notebook 03.
 - [ ] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 NWPU weights from the official Hugging Face repo `Yiming-M/CLIP-EBC` (`huggingface_hub.snapshot_download`), adapting model loading and sliding-window inference from its `app.py`. Optionally compare the ShanghaiTech-A checkpoint from GitHub releases.
-  Result:
+  Result: 2026-09-30 — `crowdsafe/counting/density_model.py` (torch from HF repo or ONNX; window / whole-image modes); unit-tested; benchmark in notebook 03.
 - [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
 - [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
-  Result:
+  Result: 2026-09-30 — `scripts/bench_counting.py` + `configs/bench_shanghaitech.yaml`; ShanghaiTech part = notebook 03 (pending run). Jülich-video + user-frame parts later.
 - [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
   Result:
 - [ ] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
