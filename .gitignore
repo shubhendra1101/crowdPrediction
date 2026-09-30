@@ -24,6 +24,8 @@ venv/
 # Secrets
 .env
 kaggle.json
+# notebook builds with embedded keys (local only)
+notebooks/local/
 
 # Node (dashboard)
 node_modules/

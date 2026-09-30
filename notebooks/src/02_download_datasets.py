@@ -61,7 +61,13 @@ print(PIP)
 # %%
 import shutil
 
+KAGGLE_CREDENTIALS = None   # filled in only in the local build (notebooks/local/, git-ignored); never commit a key
 kaggle_key = Path.home() / ".kaggle" / "kaggle.json"
+if KAGGLE_CREDENTIALS and not kaggle_key.exists():
+    import json as _json
+    kaggle_key.parent.mkdir(exist_ok=True)
+    kaggle_key.write_text(_json.dumps(KAGGLE_CREDENTIALS))
+    print("Kaggle key written from the notebook's embedded credentials")
 # kaggle.json may be uploaded to the project folder, the work folder or home (never committed to git)
 for cand in (REPO_DIR / "kaggle.json", WORK / "kaggle.json", Path.home() / "kaggle.json"):
     if cand.exists() and not kaggle_key.exists():

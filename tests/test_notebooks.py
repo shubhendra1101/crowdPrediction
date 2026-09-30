@@ -29,3 +29,12 @@ def test_notebook_builds_and_code_parses(src: Path, tmp_path: Path) -> None:
     assert code, "notebook has no code cells"
     for cell in code:
         ast.parse("".join(cell["source"]))
+
+
+def test_embed_kaggle_only_replaces_placeholder(tmp_path: Path) -> None:
+    from scripts.build_notebooks import embed_kaggle
+
+    key = tmp_path / "kaggle.json"
+    key.write_text(json.dumps({"username": "u", "key": "k"}))
+    out = embed_kaggle("# %%\nKAGGLE_CREDENTIALS = None\nx = 1\n", key)
+    assert 'KAGGLE_CREDENTIALS = {"username": "u", "key": "k"}' in out and "x = 1" in out
