@@ -98,3 +98,14 @@ def test_benchmark_loop_with_fake_model(fake_sht: Path, tmp_path: Path, monkeypa
     out = tmp_path / "res" / "bench.md"
     bench.write_results(per_image, metrics, timing, out, {"finished": "now", "split": "test", "device": "cpu", "seed": 42})
     assert out.exists() and (tmp_path / "res" / "bench_per_image.csv").exists()
+
+
+def test_decode_split_three_output_format() -> None:
+    from crowdsafe.counting.yolo_track import decode_split
+
+    boxes = np.array([[100, 100, 20, 40], [101, 100, 20, 40], [300, 300, 10, 10]], np.float32)
+    scores = np.array([[0.9], [0.8], [0.1]], np.float32)
+    classes = np.array([[1], [1], [0]], np.float32)
+    d = decode_split(boxes, scores, classes, conf=0.2, iou=0.6, scale=1.0, left=0, top=0)
+    assert len(d) == 1 and d.class_id[0] == 1
+    np.testing.assert_allclose(d.xyxy[0], [90, 80, 110, 120])

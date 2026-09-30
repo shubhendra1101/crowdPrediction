@@ -21,15 +21,15 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Result: 2026-09-30 — git repo + GitHub remote; modules in `crowdsafe/` package (D1); `.gitignore`, `requirements.txt`, `pyproject.toml`, camera template; tests pass.
 - [x] ~~**T0.5 (AGENT)** Run the old YOLO11m + CSRNet pipeline on 3–4 clips; write `results/baseline.md` (MAE, FPS, GPU memory).~~
   Result: 2026-09-30 — DROPPED by user: new project, old implementation not reused (D2). Hard-switch ablation row will be re-implemented.
-- [ ] **T0.6 (BOTH)** Run `notebooks/01_env_and_onnx_export.ipynb` on the A100: environment report; ONNX of YOLO11l, RAFT-large, CLIP-EBC ViT-B/16 NWPU (HF); smoke test of `Sharath33/Person`.
-  Result:
+- [x] **T0.6 (BOTH)** Run `notebooks/01_env_and_onnx_export.ipynb` on the A100: environment report; ONNX of YOLO11l, RAFT-large, CLIP-EBC ViT-B/16 NWPU (HF); smoke test of `Sharath33/Person`.
+  Result: 2026-09-30 — A100 run OK (commit 8bc8672): yolo11l 102 MB (4/4 persons, IoU 0.9999), raft_large 21 MB (shift 6.00/3.02 px, max diff 1.4e-4 px), clipebc_vitb16_nwpu 389 MB (927.54 vs 927.54), CrowdHuman 38 MB (decoder fixed for its 3-output layout: 4 persons / 3 heads on bus.jpg). GPU: YOLO11l 1080p 15.5 ms, RAFT 544×960 40.8 ms, 0.94 GB. Models in `weights/`, checksums match.
 
 ### T1 Data and CCTV quality
 
-- [ ] **T1.1 (BOTH)** Start downloads. Agent gives links and exact commands; user completes any registration/request forms.
+- [x] **T1.1 (BOTH)** Start downloads. Agent gives links and exact commands; user completes any registration/request forms.
   Must: Jülich archive (bottleneck, corridor, entrance, platform experiments), ShanghaiTech A/B.
   Should: JHU-Crowd++, Mall, UCSD. Nice: FDST, NWPU-Crowd. Agent asks before any single download > 5 GB.
-  Result: 2026-09-30 — registry `configs/datasets.yaml` + downloader (`scripts/download_data.py`). Laptop: 8 Jülich experiments, trajectories + metadata, 145 txt files, 1.67 GB → `results/julich_inventory.md` (units mixed m/cm, 16/25/50 fps). A100 download (videos, ShanghaiTech, JHU, Mall, UCSD) = `notebooks/02_download_datasets.ipynb`, pending run. FDST/NWPU not fetched (manual/registration).
+  Result: 2026-09-30 — A100: 13 datasets ok (~23 GB): Jülich traj+videos, JHU 2272/500/1600, Mall 2000, UCSD, ShanghaiTech HF 300/182/400/316; Kaggle ShanghaiTech has every file twice (600/364/800/632) — nb03 reads one copy. Laptop: Jülich trajectories.
 - [ ] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
   Result:
 - [ ] **T1.3 (USER, optional)** Own recordings: tripod at a high point looking down, 1080p, 25–30 fps, no zoom/pan, crowded times.

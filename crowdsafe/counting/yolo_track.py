@@ -79,6 +79,17 @@ def decode_yolo(preds: np.ndarray, conf: float, iou: float, scale: float, left: 
                          class_id=cls[idx].astype(int))
 
 
+def decode_split(boxes: np.ndarray, scores: np.ndarray, classes: np.ndarray, conf: float, iou: float,
+                 scale: float, left: int, top: int) -> sv.Detections:
+    """Decode an end-to-end style export with separate outputs: boxes (anchors, 4 as cx,cy,w,h),
+    scores (anchors, 1) and class ids (anchors, 1). Same result format as :func:`decode_yolo`."""
+    score, cls = scores.reshape(-1), classes.reshape(-1).astype(int)
+    preds = np.zeros((4 + int(cls.max(initial=0)) + 1, len(score)), np.float32)
+    preds[:4] = boxes.reshape(-1, 4).T
+    preds[4 + cls, np.arange(len(score))] = score
+    return decode_yolo(preds, conf, iou, scale, left, top)
+
+
 class PersonHeadOnnx:
     """CrowdHuman person+head YOLO11s (ONNX). class_id 0 = person, 1 = head."""
 
@@ -104,8 +115,10 @@ class PersonHeadOnnx:
         """Detect persons and heads in a BGR frame (model card: BGR, /255, letterbox 114)."""
         canvas, s, left, top = letterbox(bgr, self.h_in, self.w_in)
         x = canvas.astype(np.float32).transpose(2, 0, 1)[None] / 255.0
-        preds = self.sess.run(None, {self.name: x})[0][0]
-        return decode_yolo(preds, self.conf, self.iou, s, left, top)
+        outs = self.sess.run(None, {self.name: x})
+        if len(outs) >= 3:        # Sharath33/Person export: boxes, scores, classes
+            return decode_split(outs[0][0], outs[1][0], outs[2][0], self.conf, self.iou, s, left, top)
+        return decode_yolo(outs[0][0], self.conf, self.iou, s, left, top)
 
 
 def reliability_features(dets: sv.Detections, overlap_iou: float = 0.3) -> dict[str, float]:
