@@ -49,3 +49,20 @@ def test_shanghaitech_parquet_fallback(tmp_path: Path) -> None:
     samples = list_split(out, "A", "test")
     assert [s.count for s in samples] == [5, 9] and samples[0].points is None
     assert check_expect(out, {"**/part_A/test_data/images/*.jpg": 2})["**/part_A/test_data/images/*.jpg"]["match"]
+
+
+def test_thread_limit_and_exit_reasons(monkeypatch) -> None:
+    for v in nbenv.THREAD_VARS:
+        monkeypatch.delenv(v, raising=False)
+    n = nbenv.limit_threads(3)
+    import os
+    assert n == 3 and os.environ["OMP_NUM_THREADS"] == "3"
+    assert nbenv.cpu_limit() >= 1
+    assert "memory" in nbenv.exit_reason(-9) and "segmentation" in nbenv.exit_reason(-11)
+
+
+def test_export_script_help_runs() -> None:
+    import subprocess, sys
+    root = Path(__file__).resolve().parents[1]
+    r = subprocess.run([sys.executable, str(root / "scripts" / "export_onnx.py"), "--help"], capture_output=True, text=True)
+    assert r.returncode == 0 and "yolo" in r.stdout and "clipebc" in r.stdout

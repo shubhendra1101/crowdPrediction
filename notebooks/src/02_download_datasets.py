@@ -51,6 +51,8 @@ print("Data root:", DATA_ROOT, "| code commit:", COMMIT)
 # %%
 from crowdsafe import nbenv
 
+print("CPU threads capped to", nbenv.limit_threads())   # container quota, not the 256 host cores
+
 PIP = nbenv.safe_pip(["pyyaml", "kaggle", "certifi", "huggingface_hub>=0.24", "pyarrow", "pandas", "scipy"],
                      log=OUT / "pip_install.log")
 print(PIP)

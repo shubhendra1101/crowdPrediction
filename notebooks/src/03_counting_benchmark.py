@@ -53,6 +53,8 @@ print("code commit:", COMMIT)
 os.environ["YOLO_AUTOINSTALL"] = "false"
 from crowdsafe import nbenv
 
+print("CPU threads capped to", nbenv.limit_threads())   # container quota, not the 256 host cores
+
 PKGS = ["ultralytics>=8.3", "supervision==0.30.6", "onnxruntime>=1.18", "huggingface_hub>=0.24", "safetensors",
         "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "pandas", "pyarrow", "pyyaml", "pytest"]
 print(nbenv.safe_pip(PKGS, log=OUT / "pip_install.log"))

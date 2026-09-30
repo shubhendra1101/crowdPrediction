@@ -86,9 +86,14 @@ class PersonHeadOnnx:
 
     def __init__(self, onnx_path: str | Path, conf: float = 0.2, iou: float = 0.6,
                  providers: list[str] | None = None) -> None:
+        import os
+
         import onnxruntime as ort
 
-        self.sess = ort.InferenceSession(str(onnx_path), providers=providers or ["CPUExecutionProvider"])
+        so = ort.SessionOptions()
+        if os.environ.get("OMP_NUM_THREADS"):     # respect the container CPU quota (see crowdsafe.nbenv)
+            so.intra_op_num_threads = int(os.environ["OMP_NUM_THREADS"])
+        self.sess = ort.InferenceSession(str(onnx_path), sess_options=so, providers=providers or ["CPUExecutionProvider"])
         inp = self.sess.get_inputs()[0]
         self.name = inp.name
         h, w = inp.shape[2], inp.shape[3]

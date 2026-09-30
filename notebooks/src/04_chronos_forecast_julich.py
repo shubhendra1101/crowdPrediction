@@ -43,6 +43,8 @@ print("code commit:", COMMIT)
 # %%
 from crowdsafe import nbenv
 
+print("CPU threads capped to", nbenv.limit_threads())   # container quota, not the 256 host cores
+
 PKGS = ["chronos-forecasting>=2.0", "accelerate", "pedpy", "shapely", "pyarrow", "pandas", "pyyaml", "scipy",
         "certifi", "huggingface_hub>=0.24"]
 print(nbenv.safe_pip(PKGS, log=OUT / "pip_install.log"))

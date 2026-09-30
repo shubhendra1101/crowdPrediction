@@ -97,6 +97,46 @@ def fix_cv2() -> str:
     return f"cv2 fixed (headless) {msg}"
 
 
+def cpu_limit(default: int = 4) -> int:
+    """CPUs this container may actually use (cgroup quota), not the host's core count."""
+    try:
+        quota, period = Path("/sys/fs/cgroup/cpu.max").read_text().split()[:2]
+        if quota != "max":
+            return max(1, int(int(quota) / int(period)))
+    except (OSError, ValueError):
+        pass
+    try:
+        q = int(Path("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").read_text())
+        p = int(Path("/sys/fs/cgroup/cpu/cpu.cfs_period_us").read_text())
+        if q > 0:
+            return max(1, q // p)
+    except (OSError, ValueError):
+        pass
+    import os
+    return min(os.cpu_count() or default, default) if default else (os.cpu_count() or 1)
+
+
+THREAD_VARS = ["OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS",
+               "VECLIB_MAXIMUM_THREADS", "ORT_NUM_THREADS"]
+
+
+def limit_threads(n: int | None = None) -> int:
+    """Cap math-library threads to the container's CPU quota (set before importing numpy/torch)."""
+    import os
+    n = n or cpu_limit()
+    for v in THREAD_VARS:
+        os.environ[v] = str(n)
+    return n
+
+
+def exit_reason(code: int) -> str:
+    """Plain-language meaning of a subprocess exit code."""
+    return {0: "ok", -9: "killed (SIGKILL) — almost always out of memory (container limit)",
+            137: "killed — almost always out of memory (container limit)",
+            -11: "segmentation fault in a native library", 139: "segmentation fault in a native library",
+            -6: "aborted by a native library"}.get(code, f"exit code {code}")
+
+
 def gpu_summary(require: bool = True) -> dict:
     """Torch/CUDA/GPU facts; raise if ``require`` and no GPU is visible."""
     import torch

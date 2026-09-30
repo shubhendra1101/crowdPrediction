@@ -84,10 +84,15 @@ class ClipEbcDensity:
         elif backend == "onnx":
             if mode != "window":
                 raise ValueError("The ONNX model takes fixed windows; use mode='window'.")
+            import os
+
             import onnxruntime as ort
 
             providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if device != "cpu" else ["CPUExecutionProvider"]
-            self.sess = ort.InferenceSession(str(onnx_path), providers=providers)
+            so = ort.SessionOptions()
+            if os.environ.get("OMP_NUM_THREADS"):
+                so.intra_op_num_threads = int(os.environ["OMP_NUM_THREADS"])
+            self.sess = ort.InferenceSession(str(onnx_path), sess_options=so, providers=providers)
             self.win, self.red = input_size, reduction
         else:
             raise ValueError(f"Unknown backend {backend}")
