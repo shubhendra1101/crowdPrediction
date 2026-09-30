@@ -37,9 +37,9 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [x] **T1.4 (AGENT)** Camera audit script → `results/camera_audit.md` (resolution, head size in px, FPS, compression, brightness, angle, shake) with per-camera recommendations.
   Needs: T1.2.
   Result: 2026-09-30 — cam01/cam02: 1920×1080, 25 fps, h264 ASF (no seeking → sequential reads); brightness ~117, blockiness 1.04–1.08, shake ≤ 0.64 px/s; heads median 40–53 px (p10 31–41 px) → detectors usable; max persons 51 (cam01), 45 (cam02); cam02 exit at ~min 7. `results/camera_audit_cam0*.md`.
-- [ ] **T1.5 (AGENT)** Sample ~100 frames (≥ 5 s apart, varied density/time/camera); pre-label with CLIP-EBC; export to CVAT point format; write a 5-step guide for the user.
+- [x] **T1.5 (AGENT)** Sample ~100 frames (≥ 5 s apart, varied density/time/camera); pre-label with CLIP-EBC; export to CVAT point format; write a 5-step guide for the user.
   Needs: T1.2, T3.3 weights.
-  Result:
+  Result: 2026-09-30 — 100 frames (cam01 86, cam02 14; ≥ 5 s apart, stratified 0–55 heads) pre-labelled with CrowdHuman head centres (3,562 points; CLIP-EBC gives no points) → `data/cctv/labels/images.zip` + `cvat_prelabels.zip`; guide `docs/cvat_guide.md`. Only one camera, so no camera-level held-out split yet.
 - [ ] **T1.6 (USER)** Correct pre-labels in CVAT (~5–8 h) and export.
   Result:
 - [ ] **T1.7 (AGENT)** Import labels; split train/val/test **by camera** (≥ 1 camera fully held out); write split file.

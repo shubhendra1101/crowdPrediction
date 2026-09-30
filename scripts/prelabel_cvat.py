@@ -79,19 +79,28 @@ def main() -> int:
             d = det(frame)
             heads = d[d.class_id == det.HEAD]
             centres = [((x0 + x1) / 2, (y0 + y1) / 2) for x0, y0, x1, y1 in heads.xyxy]
-            cands.append({"camera": v.stem, "t_s": round(t, 1), "frame": frame, "points": centres,
-                          "persons": int((d.class_id == det.PERSON).sum()), "heads": len(heads)})
+            cands.append({"camera": v.stem, "video": v, "fps": fps, "t_s": round(t, 1), "points": centres,
+                          "persons": int((d.class_id == det.PERSON).sum()), "heads": len(heads),
+                          "width": frame.shape[1], "height": frame.shape[0]})   # no pixels kept: low memory
         print(f"{v.name}: {sum(c['camera'] == v.stem for c in cands)} candidate frames", flush=True)
     counts = pd.Series([c["heads"] for c in cands])
     picked = stratified_pick(counts, a.n, a.bins, a.seed)
     (a.out / "images").mkdir(parents=True, exist_ok=True)
     rows, images = [], []
+    # second pass: re-read each video sequentially and write only the picked frames
+    wanted = {}
+    for i in picked:
+        wanted.setdefault(cands[i]["video"], {})[cands[i]["t_s"]] = cands[i]
+    for v, by_t in wanted.items():
+        fps = next(iter(by_t.values()))["fps"]
+        for t, frame, _ in sample_frames(v, a.min_gap_s, fps):
+            c = by_t.get(round(t, 1))
+            if c is not None:
+                cv2.imwrite(str(a.out / "images" / f"{c['camera']}_t{int(c['t_s']):05d}.jpg"), frame)
     for i in picked:
         c = cands[i]
         name = f"{c['camera']}_t{int(c['t_s']):05d}.jpg"
-        cv2.imwrite(str(a.out / "images" / name), c["frame"])
-        h, w = c["frame"].shape[:2]
-        images.append({"name": name, "width": w, "height": h, "points": c["points"]})
+        images.append({"name": name, "width": c["width"], "height": c["height"], "points": c["points"]})
         rows.append({"image": name, "camera": c["camera"], "t_s": c["t_s"], "prelabel_heads": c["heads"],
                      "prelabel_persons": c["persons"]})
     pd.DataFrame(rows).to_csv(a.out / "frames.csv", index=False)
