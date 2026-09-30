@@ -1,0 +1,2 @@
+camera,file,resolution,fps_claimed,fps_measured,duration_min,codec,samples,brightness_median,contrast_median,sharpness_median,blockiness_median,frames_distinct,shake_px_median,shake_px_max,persons_max,persons_median,heads_max,head_px_median,head_px_p10,audit_seconds
+cam02,cam02.asf,1920x1080,25.0,,15.1,h264,182,118.0,53.0,1970.2,1.079,161,0.1,0.64,45,9.5,48,53.3,40.8,109.1
