@@ -1,0 +1,75 @@
+{
+  "finished": "2026-09-30 12:14:03",
+  "split": "test",
+  "device": "0",
+  "seed": 42,
+  "commit": "a0326a2",
+  "limit": null,
+  "config": {
+    "seed": 42,
+    "dataset": {
+      "parts": [
+        "A",
+        "B"
+      ],
+      "split": "test"
+    },
+    "count_bands": [
+      50,
+      200,
+      500
+    ],
+    "models": {
+      "yolo11l_1280": {
+        "type": "yolo",
+        "weights": "yolo11l.pt",
+        "imgsz": 1280,
+        "conf": 0.25
+      },
+      "yolo11l_tiled640": {
+        "type": "yolo",
+        "weights": "yolo11l.pt",
+        "imgsz": 640,
+        "conf": 0.25,
+        "slice_wh": 640,
+        "overlap_px": 128
+      },
+      "phd": {
+        "type": "person_head",
+        "onnx": "yolo11s_crowdhuman_person_head.onnx",
+        "conf": 0.2,
+        "iou": 0.6
+      },
+      "clipebc_window": {
+        "type": "clipebc",
+        "mode": "window"
+      },
+      "clipebc_whole": {
+        "type": "clipebc",
+        "mode": "whole"
+      }
+    }
+  },
+  "timing": {
+    "yolo11l_1280": {
+      "ms_per_image_median": 17.7,
+      "images": 498
+    },
+    "yolo11l_tiled640": {
+      "ms_per_image_median": 58.1,
+      "images": 498
+    },
+    "phd": {
+      "ms_per_image_median": 79.3,
+      "images": 498
+    },
+    "clipebc_window": {
+      "ms_per_image_median": 43.9,
+      "images": 498
+    },
+    "clipebc_whole": {
+      "ms_per_image_median": 34.8,
+      "images": 498
+    }
+  }
+}

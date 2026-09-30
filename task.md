@@ -74,7 +74,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
 - [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
-  Result: 2026-09-30 — `scripts/bench_counting.py` + `configs/bench_shanghaitech.yaml`; ShanghaiTech part = notebook 03 (pending run). Jülich-video + user-frame parts later.
+  Result: 2026-09-30 — ShanghaiTech test, zero-shot (A100, commit a0326a2), MAE A/B: CLIP-EBC window 66.95/11.66, whole 66.0/11.98; CrowdHuman heads 374.2/70.2, persons 377.1/58.8; YOLO11l 418.3/92.8; YOLO tiled 421.7/95.4 (tiling did not help). CLIP-EBC best in every band incl. <50 on B (1.95 vs YOLO 8.95). `results/counting_zeroshot_shanghaitech.md`. Jülich-video + CCTV parts pending.
 - [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
   Result:
 - [ ] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
@@ -116,12 +116,12 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 - [x] **T6.1 (AGENT)** Persistence and physics fill-rate baselines + time-to-critical.
   Result: 2026-09-30 — `forecasting/baselines.py` (persistence, physics fill-rate + time-to-critical). Jülich test MAE (p/m²) 10/30/60 s: persistence 0.39/0.57/0.71, physics 1.05/2.51/4.45 (noisy 2 m-zone flux). `results/forecast_julich.md`.
-- [ ] **T6.2 (AGENT)** Chronos-2 zero-shot wrapper: zones as a group, motion features as covariates, quantiles 0.1/0.5/0.9.
-  Result: 2026-09-30 — `forecasting/chronos.py` (per-zone + covariates / joint multivariate), tested with a fake pipeline; A100 run = notebook 04 (pending).
-- [ ] **T6.3 (AGENT)** Split conformal calibration of the 90% bound.
-  Result: 2026-09-30 — `forecasting/conformal.py` split conformal. Baselines, val→test: calibrated p90 coverage 0.85/0.66/0.68 (target 0.90) — val/test geometries differ (shift). Chronos part pending notebook 04.
+- [x] **T6.2 (AGENT)** Chronos-2 zero-shot wrapper: zones as a group, motion features as covariates, quantiles 0.1/0.5/0.9.
+  Result: 2026-09-30 — Chronos-2 zero-shot on Jülich test (A100): MAE 10/30/60 s per-zone 0.376/0.558/0.727, joint 0.372/0.569/0.741 vs persistence 0.387/0.568/0.711.
+- [x] **T6.3 (AGENT)** Split conformal calibration of the 90% bound.
+  Result: 2026-09-30 — split conformal, val→test coverage of calibrated p90 (target 0.90): Chronos-2 per-zone 0.892/0.875/0.925, joint 0.861/0.835/0.880; persistence 0.850/0.660/0.676; physics 0.798/0.700/0.751.
 - [ ] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
-  Result:
+  Result: 2026-09-30 — Jülich part done: `results/forecast_julich_a100.md` (Chronos-2 ≈ persistence on MAE, but only Chronos-2 gives a near-90% calibrated upper bound). Sim + CCTV parts pending (T5.3/T5.4).
 - [ ] **T6.5 (BOTH, optional)** If Chronos-2 is weak: agent proposes fine-tuning via AutoGluon with time estimate; user decides.
   Result:
 - [ ] **T6.6 (AGENT, optional)** Per-zone GRU comparison.
