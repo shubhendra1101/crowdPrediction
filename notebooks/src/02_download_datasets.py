@@ -11,8 +11,8 @@
 # **Storage:** this server has no persistent volume — data lives until the server is deleted. Re-running is safe:
 # finished files are skipped.
 #
-# **Kaggle key (optional):** upload `kaggle.json` to your home folder with the file browser; it is moved into
-# place automatically. Never paste the key into a cell. Without it, JHU and UCSD are skipped and
+# **Kaggle key (optional):** upload `kaggle.json` into the project folder `crowdsafe_work/crowdPrediction/` (or your home
+# folder) with the file browser; it is copied into place automatically (it is git-ignored, never committed). Never paste the key into a cell. Without it, JHU and UCSD are skipped and
 # ShanghaiTech comes from Hugging Face.
 #
 # **How to run:** `Kernel → Restart & Run All` (20–60 min, ~12 GB). **Return:** `crowdsafe_nb02_report.zip`.
@@ -61,10 +61,13 @@ print(PIP)
 # %%
 import shutil
 
-home_key, kaggle_key = Path.home() / "kaggle.json", Path.home() / ".kaggle" / "kaggle.json"
-if home_key.exists() and not kaggle_key.exists():
-    kaggle_key.parent.mkdir(exist_ok=True)
-    shutil.move(str(home_key), kaggle_key)
+kaggle_key = Path.home() / ".kaggle" / "kaggle.json"
+# kaggle.json may be uploaded to the project folder, the work folder or home (never committed to git)
+for cand in (REPO_DIR / "kaggle.json", WORK / "kaggle.json", Path.home() / "kaggle.json"):
+    if cand.exists() and not kaggle_key.exists():
+        kaggle_key.parent.mkdir(exist_ok=True)
+        shutil.copy(cand, kaggle_key)
+        print("Kaggle key taken from", cand)
 if kaggle_key.exists():
     kaggle_key.chmod(0o600)
 free_gb = shutil.disk_usage(DATA_ROOT).free / 1e9
