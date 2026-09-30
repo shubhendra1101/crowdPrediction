@@ -81,7 +81,7 @@ print("Work dir:", WORK, "| code commit:", COMMIT)
 os.environ["YOLO_AUTOINSTALL"] = "false"    # stop Ultralytics from pip-installing things mid-run
 from crowdsafe import nbenv
 
-PKGS = ["ultralytics>=8.3", "onnx>=1.16", "onnxruntime>=1.18", "onnxslim", "huggingface_hub>=0.24",
+PKGS = ["ultralytics>=8.3", "onnx>=1.16", "onnxruntime>=1.18", "onnxslim", "onnxscript", "huggingface_hub>=0.24",
         "safetensors", "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "psutil",
         "requests", "matplotlib", "pyyaml", "supervision==0.30.6"]
 PIP =nbenv.safe_pip(PKGS, log=LOG_DIR / "pip_install.log")
