@@ -106,7 +106,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
   Result:
 - [ ] **T5.5 (AGENT)** Split train/val/test by experiment, geometry and camera; write `results/dataset_summary.md`.
-  Result:
+  Result: 2026-09-30 — Jülich split proposed in `configs/forecast_julich.yaml` (test: corridor_uni_2013 + entrance_semicircle; val: bottleneck2, entrance_corridor, corridor_bi_2009; train: corridor_uni_2009, train_platform) — awaiting user OK; sim/CCTV splits later.
 
 ---
 
@@ -114,12 +114,12 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T6 Forecasting
 
-- [ ] **T6.1 (AGENT)** Persistence and physics fill-rate baselines + time-to-critical.
-  Result:
+- [x] **T6.1 (AGENT)** Persistence and physics fill-rate baselines + time-to-critical.
+  Result: 2026-09-30 — `forecasting/baselines.py` (persistence, physics fill-rate + time-to-critical). Jülich test MAE (p/m²) 10/30/60 s: persistence 0.39/0.57/0.71, physics 1.05/2.51/4.45 (noisy 2 m-zone flux). `results/forecast_julich.md`.
 - [ ] **T6.2 (AGENT)** Chronos-2 zero-shot wrapper: zones as a group, motion features as covariates, quantiles 0.1/0.5/0.9.
-  Result:
+  Result: 2026-09-30 — `forecasting/chronos.py` (per-zone + covariates / joint multivariate), tested with a fake pipeline; A100 run = notebook 04 (pending).
 - [ ] **T6.3 (AGENT)** Split conformal calibration of the 90% bound.
-  Result:
+  Result: 2026-09-30 — `forecasting/conformal.py` split conformal. Baselines, val→test: calibrated p90 coverage 0.85/0.66/0.68 (target 0.90) — val/test geometries differ (shift). Chronos part pending notebook 04.
 - [ ] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
   Result:
 - [ ] **T6.5 (BOTH, optional)** If Chronos-2 is weak: agent proposes fine-tuning via AutoGluon with time estimate; user decides.

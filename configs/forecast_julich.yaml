@@ -1,0 +1,22 @@
+# Forecast evaluation on Jülich zone features (T6.1 / T6.4, Jülich part).
+features_root: data/features/julich
+seed: 42
+
+# Split by experiment (= geometry), never by time within a run (T5.5). Default proposal, awaiting user OK:
+# test holds one corridor and one entrance geometry that both pass 5 persons/m²; val holds the other
+# entrance geometry (also > 5) for conformal calibration and threshold tuning.
+split:
+  train: [julich_corridor_uni_2009, julich_train_platform]
+  val: [julich_bottleneck2, julich_entrance_corridor, julich_corridor_bi_2009]
+  test: [julich_corridor_uni_2013, julich_entrance_semicircle]
+
+# Most Jülich runs last 1–3 min, so horizons are short here; minute-scale horizons come from simulation (T5.4).
+context_s: 30
+horizons_s: [10, 30, 60]
+origin_stride_s: 5             # a forecast is issued every 5 s of each run
+critical_density: 5.0          # persons/m², CLAUDE.md §9
+
+models:
+  persistence: {}
+  physics:
+    flux_window_s: 10          # inflow/outflow averaged over the last 10 s

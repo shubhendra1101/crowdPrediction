@@ -51,8 +51,12 @@ def main() -> int:
     ap.add_argument("--datasets", nargs="*", default=None)
     ap.add_argument("--limit-runs", type=int, default=None)
     ap.add_argument("--results", type=Path, default=Path("results/julich_features_summary.md"))
+    ap.add_argument("--raw-root", type=Path, default=None, help="override raw_root from the config")
+    ap.add_argument("--out-root", type=Path, default=None, help="override out_root from the config")
     args = ap.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    cfg["raw_root"] = str(args.raw_root or cfg["raw_root"])
+    cfg["out_root"] = str(args.out_root or cfg["out_root"])
     fc = cfg["features"]
     rows, checks = [], {}
     for ds, dcfg in cfg["datasets"].items():
@@ -108,7 +112,7 @@ def main() -> int:
     lines += [f"| {k} | {v['run']} | {v['zone']} | {v['max_abs_diff']:.4f} |" for k, v in checks.items()]
     lines += ["", "Per-run table: `" + str(args.results.with_suffix(".csv")) + "`."]
     args.results.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    Path(args.results.with_name("julich_features_checks.json")).write_text(json.dumps(checks, indent=2))
+    args.results.with_name(args.results.stem + "_checks.json").write_text(json.dumps(checks, indent=2))
     print(by_ds.to_string())
     return 0
 
