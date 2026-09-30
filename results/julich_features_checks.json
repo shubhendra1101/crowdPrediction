@@ -1,0 +1,32 @@
+{
+  "julich_bottleneck2": {
+    "run": "b090",
+    "zone": "c1_1",
+    "max_abs_diff": 0.0
+  },
+  "julich_corridor_bi_2009": {
+    "run": "bo-360-050-050",
+    "zone": "c2_6",
+    "max_abs_diff": 0.0
+  },
+  "julich_corridor_uni_2013": {
+    "run": "uni_corr_500_01",
+    "zone": "c10_2",
+    "max_abs_diff": 0.0
+  },
+  "julich_entrance_corridor": {
+    "run": "entrance_2",
+    "zone": "c1_1",
+    "max_abs_diff": 0.0
+  },
+  "julich_entrance_semicircle": {
+    "run": "entrance_1",
+    "zone": "c2_1",
+    "max_abs_diff": 0.0
+  },
+  "julich_train_platform": {
+    "run": "1B050",
+    "zone": "c1_8",
+    "max_abs_diff": 0.0
+  }
+}

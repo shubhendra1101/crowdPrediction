@@ -97,10 +97,10 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T5 Feature logging and simulation
 
-- [ ] **T5.1 (AGENT)** Feature schema + Parquet logger (`architecture.md` §2.4).
-  Result:
-- [ ] **T5.2 (AGENT)** Jülich loader: trajectories → PedPy → feature table, per zone.
-  Result:
+- [x] **T5.1 (AGENT)** Feature schema + Parquet logger (`architecture.md` §2.4).
+  Result: 2026-09-30 — `crowdsafe/features/schema.py` (14 columns, validate/conform) + `logger.py` (Parquet, SQLite); tests pass.
+- [x] **T5.2 (AGENT)** Jülich loader: trajectories → PedPy → feature table, per zone.
+  Result: 2026-09-30 — 144 runs / 8 experiments → `data/features/julich/`; 2 m zones; max density 9.0 (entrance_semicircle), 5.65 (entrance_corridor), 5.3 (corridor_uni_2013); 643 zone-s ≥ 5 p/m²; bottleneck1 has no 2 m zone (area 0.6 m wide); PedPy cross-check diff 0.0000 on 6/6. `results/julich_features_summary.md`.
 - [ ] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
   Result:
 - [ ] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².

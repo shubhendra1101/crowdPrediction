@@ -1,0 +1,27 @@
+# Jülich trajectories -> zone feature table (T5.2). Used by scripts/julich_features.py.
+# Units / frame rates: from file headers when present (the loader checks and prefers them),
+# otherwise from the archive pages (see results/julich_inventory.md). Nothing here is guessed
+# except where marked "inferred".
+raw_root: data/raw
+out_root: data/features/julich
+skip_files: [readme]          # non-trajectory .txt files shipped in some archives
+
+features:
+  sample_hz: 5               # trajectories are resampled to this common time grid
+  cell_m: 2.0                # zones = square cells of this size (4 m²)  [default, awaiting user confirmation]
+  walkable_res_m: 0.25       # resolution of the "visited floor" mask used to infer walkable area
+  min_walkable_share: 0.9    # keep a cell as a zone only if >= 90% of it was walked on during the run
+  body_radius_m: 0.25        # each recorded position marks a disc of this radius as walked on (body ~0.5 m wide)
+  max_speed: 4.0            # m/s; faster = tracking glitch -> velocity ignored (position still counted)
+  min_speed: 0.1             # m/s; slower movement is ignored for direction entropy / counter-flow
+  direction_bins: 8
+
+datasets:
+  julich_bottleneck1: {unit: m, fps: 25, time: "sec:frame"}
+  julich_bottleneck2: {unit: cm, fps: 25, time: frame, unit_note: "inferred from coordinate range; no header"}
+  julich_corridor_uni_2009: {unit: cm, fps: 16, time: frame}
+  julich_corridor_bi_2009: {unit: cm, fps: 16, time: frame}
+  julich_corridor_uni_2013: {unit: m, fps: 16, time: frame}
+  julich_entrance_corridor: {unit: cm, fps: 25, time: frame}
+  julich_entrance_semicircle: {unit: cm, fps: 25, time: frame}
+  julich_train_platform: {unit: m, fps: 50, time: frame}
