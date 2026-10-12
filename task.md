@@ -40,10 +40,10 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [x] **T1.5 (AGENT)** Sample ~100 frames (≥ 5 s apart, varied density/time/camera); pre-label with CLIP-EBC; export to CVAT point format; write a 5-step guide for the user.
   Needs: T1.2, T3.3 weights.
   Result: 2026-09-30 — 100 frames (cam01 86, cam02 14; ≥ 5 s apart, stratified 0–55 heads) pre-labelled with CrowdHuman head centres (3,562 points; CLIP-EBC gives no points) → `data/cctv/labels/images.zip` + `cvat_prelabels.zip`; guide `docs/cvat_guide.md`. Only one camera, so no camera-level held-out split yet.
-- [ ] **T1.6 (USER)** Correct pre-labels in CVAT (~5–8 h) and export.
-  Result:
-- [ ] **T1.7 (AGENT)** Import labels; split train/val/test **by camera** (≥ 1 camera fully held out); write split file.
-  Result:
+- [x] **T1.6 (USER)** Correct pre-labels in CVAT (~5–8 h) and export.
+  Result: 2026-10-12 — user corrected 100 frames in CVAT: 4,379 heads (pre-labels 3,562; +817 added, 96 frames changed); 0 out-of-frame points, 2 near-duplicate pairs kept as labelled.
+- [x] **T1.7 (AGENT)** Import labels; split train/val/test **by camera** (≥ 1 camera fully held out); write split file.
+  Result: 2026-10-12 — imported (`crowdsafe/datasets/cvat.py`). Single camera → time-block split: val = first 50% of cam01 by time (43 frames), test = rest of cam01 + cam02 (57). No held-out camera yet.
 
 ### T2 Calibration and zones
 
@@ -74,13 +74,13 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
 - [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
-  Result: 2026-09-30 — ShanghaiTech test, zero-shot (A100, commit a0326a2), MAE A/B: CLIP-EBC window 66.95/11.66, whole 66.0/11.98; CrowdHuman heads 374.2/70.2, persons 377.1/58.8; YOLO11l 418.3/92.8; YOLO tiled 421.7/95.4 (tiling did not help). CLIP-EBC best in every band incl. <50 on B (1.95 vs YOLO 8.95). `results/counting_zeroshot_shanghaitech.md`. Jülich-video + CCTV parts pending.
+  Result: 2026-10-12 — ShanghaiTech MAE A/B: CLIP-EBC 66.95/11.66, YOLO11l 418.3/92.8, CrowdHuman heads 374.2/70.2. Classroom CCTV (100 frames, zero-shot, CPU ONNX): CLIP-EBC 5.10 (+5.09 bias, 12.6%), YOLO11l 6.36 (−6.02, 15.1%), CrowdHuman heads 8.04 (19.4%). `results/counting_zeroshot_cctv.md`. Jülich-video part pending.
 - [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
-  Result:
-- [ ] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
-  Result:
-- [ ] **T3.8 (AGENT)** Ablation: YOLO only / CLIP-EBC only / hard switch / weighted fusion on held-out camera → `results/fusion_ablation.md`.
-  Result:
+  Result: 2026-10-12 — no fine-tuning proposed: zero-shot error 12–15% and combining models removes most of it (see T3.8). Revisit only if a second camera is much worse.
+- [x] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
+  Result: 2026-10-12 — `crowdsafe/counting/fusion.py` (learned w = sigmoid(θ·f), hard switch, constant weight). Detector chosen by measured error: YOLO11l (6.36) over CrowdHuman heads (8.04).
+- [x] **T3.8 (AGENT)** Ablation: YOLO only / CLIP-EBC only / hard switch / weighted fusion on held-out camera → `results/fusion_ablation.md`.
+  Result: 2026-10-12 — test MAE (57 frames): YOLO11l 6.25 · CLIP-EBC 5.30 · hard switch 5.30 (τ → always density) · 50/50 average 1.66 · constant w=0.43 1.59 · learned fusion 2.09 (val 1.16 → overfits, 6 params / 43 frames). Gain comes from opposite biases; learned weighting not better than a constant weight here. `results/fusion_ablation.md`.
 
 ### T4 Motion features
 

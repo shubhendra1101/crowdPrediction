@@ -121,6 +121,32 @@ class PersonHeadOnnx:
         return decode_yolo(outs[0][0], self.conf, self.iou, s, left, top)
 
 
+class YoloOnnx:
+    """Ultralytics-exported YOLO ONNX (e.g. yolo11l.onnx, COCO) run with onnxruntime — no ultralytics needed.
+
+    Preprocessing as Ultralytics: letterbox (114 padding), RGB, /255. Returns detections of ``classes``.
+    """
+
+    def __init__(self, onnx_path: str | Path, imgsz: int = 1280, conf: float = 0.25, iou: float = 0.7,
+                 classes: tuple[int, ...] = (0,), providers: list[str] | None = None) -> None:
+        import os
+
+        import onnxruntime as ort
+
+        so = ort.SessionOptions()
+        if os.environ.get("OMP_NUM_THREADS"):
+            so.intra_op_num_threads = int(os.environ["OMP_NUM_THREADS"])
+        self.sess = ort.InferenceSession(str(onnx_path), sess_options=so, providers=providers or ["CPUExecutionProvider"])
+        self.name = self.sess.get_inputs()[0].name
+        self.imgsz, self.conf, self.iou, self.classes = imgsz, conf, iou, classes
+
+    def __call__(self, bgr: np.ndarray) -> sv.Detections:
+        canvas, s, left, top = letterbox(bgr, self.imgsz, self.imgsz)
+        x = canvas[:, :, ::-1].astype(np.float32).transpose(2, 0, 1)[None] / 255.0
+        d = decode_yolo(self.sess.run(None, {self.name: np.ascontiguousarray(x)})[0][0], self.conf, self.iou, s, left, top)
+        return d[np.isin(d.class_id, self.classes)] if len(d) else d
+
+
 def reliability_features(dets: sv.Detections, overlap_iou: float = 0.3) -> dict[str, float]:
     """Fusion inputs for one zone/frame: count, mean confidence, share of overlapping boxes, mean box height."""
     n = len(dets)
