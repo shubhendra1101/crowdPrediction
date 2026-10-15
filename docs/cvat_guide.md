@@ -33,6 +33,8 @@ Files (on the laptop, never uploaded to GitHub):
 | Head partly hidden but you can tell a person is there | Put a dot where the head is |
 | Person fully hidden | No dot |
 | Reflection in the window / person outside the room | No dot |
+| People seen **through a glass window** in another room (lab H103, top-left) | No dot |
+| **Monitors, black chairs, bags, dark screens** (lab H103) | No dot — only real heads. Zoom in where a student sits in front of a black monitor |
 
 - Move between frames with **D** (next) and **A** (previous). Zoom with the mouse wheel.
 - Work steadily; accuracy matters more than speed. In crowded frames, zoom in and go left to right.

@@ -31,12 +31,12 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Should: JHU-Crowd++, Mall, UCSD. Nice: FDST, NWPU-Crowd. Agent asks before any single download > 5 GB.
   Result: 2026-09-30 — A100: 13 datasets ok (~23 GB): Jülich traj+videos, JHU 2272/500/1600, Mall 2000, UCSD, ShanghaiTech HF 300/182/400/316; Kaggle ShanghaiTech has every file twice (600/364/800/632) — nb03 reads one copy. Laptop: Jülich trajectories.
 - [ ] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
-  Result: 2026-09-30 — 1 camera (classroom H705 Front, corner, ~2–2.5 m high, permission granted): cam01 72 min (lecture), cam02 15 min (lecture → mass exit → empty). More cameras still needed (≥1 held-out camera; corridor/door/stairs preferred).
+  Result: 2026-10-15 — 4 recordings, 3 rooms (permission granted): cam01/cam02 H705 classroom (72 + 15 min), cam03 H706 classroom, other-side view (33.5 min: studying → break exit), cam04 H103 computer lab (37.7 min: empty → students enter). Room L×B×H in `configs/rooms.yaml` (user, feet → m). No corridor/door camera yet.
 - [ ] **T1.3 (USER, optional)** Own recordings: tripod at a high point looking down, 1080p, 25–30 fps, no zoom/pan, crowded times.
   Result:
 - [x] **T1.4 (AGENT)** Camera audit script → `results/camera_audit.md` (resolution, head size in px, FPS, compression, brightness, angle, shake) with per-camera recommendations.
   Needs: T1.2.
-  Result: 2026-09-30 — cam01/cam02: 1920×1080, 25 fps, h264 ASF (no seeking → sequential reads); brightness ~117, blockiness 1.04–1.08, shake ≤ 0.64 px/s; heads median 40–53 px (p10 31–41 px) → detectors usable; max persons 51 (cam01), 45 (cam02); cam02 exit at ~min 7. `results/camera_audit_cam0*.md`.
+  Result: 2026-10-15 — all 4 cameras 1920×1080, 25 fps, steady (≤ 0.64 px/s). Heads p10/median px: cam01 31/40, cam02 41/53, cam03 32/46, cam04 25/35 (lab, darker: brightness 99). Max persons 51/45/48/34. cam04 empty frame: 0 false heads on monitors at conf 0.2; people visible through a glass window must be excluded. `results/camera_audit_*.md`.
 - [x] **T1.5 (AGENT)** Sample ~100 frames (≥ 5 s apart, varied density/time/camera); pre-label with CLIP-EBC; export to CVAT point format; write a 5-step guide for the user.
   Needs: T1.2, T3.3 weights.
   Result: 2026-09-30 — 100 frames (cam01 86, cam02 14; ≥ 5 s apart, stratified 0–55 heads) pre-labelled with CrowdHuman head centres (3,562 points; CLIP-EBC gives no points) → `data/cctv/labels/images.zip` + `cvat_prelabels.zip`; guide `docs/cvat_guide.md`. Only one camera, so no camera-level held-out split yet.
@@ -53,7 +53,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T2.2 (USER)** Venue layout sketch: walkable areas, entrances/exits, which areas connect; widths of exits, gates, corridors, stairs in metres.
   Result:
 - [ ] **T2.3 (AGENT)** Calibration tool (click points → homography) using the `ViewTransformer` pattern; save H to YAML.
-  Result:
+  Result: 2026-10-15 — `crowdsafe/calibration/homography.py` (fit with RANSAC, px↔m, zone area via Shapely, validation distance, hidden-corner line intersection); tested. Room floor corners are occluded in H705 → need desk-grid measurements from the user. Click UI + YAML writer pending.
 - [ ] **T2.4 (BOTH)** Draw zones with the Roboflow PolygonZone tool (agent explains; user or agent draws); compute areas with Shapely; add adjacency and boundaries from T2.2.
   Result:
 - [ ] **T2.5 (AGENT)** Validate each camera with the unused distance (target < 10% error). Mark approximate calibrations as approximate.

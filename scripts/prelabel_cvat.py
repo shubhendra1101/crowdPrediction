@@ -63,6 +63,7 @@ def main() -> int:
     ap.add_argument("--videos", nargs="+", type=Path, required=True)
     ap.add_argument("--phd-onnx", type=Path, required=True)
     ap.add_argument("--n", type=int, default=100)
+    ap.add_argument("--n-per-camera", type=int, default=None, help="pick this many frames from each video instead of --n overall")
     ap.add_argument("--min-gap-s", type=float, default=5.0)
     ap.add_argument("--bins", type=int, default=5)
     ap.add_argument("--seed", type=int, default=42)
@@ -84,7 +85,12 @@ def main() -> int:
                           "width": frame.shape[1], "height": frame.shape[0]})   # no pixels kept: low memory
         print(f"{v.name}: {sum(c['camera'] == v.stem for c in cands)} candidate frames", flush=True)
     counts = pd.Series([c["heads"] for c in cands])
-    picked = stratified_pick(counts, a.n, a.bins, a.seed)
+    if a.n_per_camera:
+        cams = pd.Series([c["camera"] for c in cands])
+        picked = sorted(i for cam in cams.unique()
+                        for i in stratified_pick(counts[cams == cam], a.n_per_camera, a.bins, a.seed))
+    else:
+        picked = stratified_pick(counts, a.n, a.bins, a.seed)
     (a.out / "images").mkdir(parents=True, exist_ok=True)
     rows, images = [], []
     # second pass: re-read each video sequentially and write only the picked frames
