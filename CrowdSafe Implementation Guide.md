@@ -2,6 +2,9 @@
 
 Sep 29, 2026 · @Shruti Mishra
 
+
+> **Note (updated 2026-10-15):** this is the *original* plan from 29 Sep 2026, kept for reference. Several parts changed (new project instead of extending an old repo, Hugging Face model sources, Chronos-2 instead of a GNN, notebooks on the college A100). See `docs/PROJECT_STATUS.md` §2 and `docs/decisions.md` for what changed and why.
+
 ## Overview
 
 The goal is a system that forecasts each zone's crowd density and stampede risk minutes ahead and raises tiered alerts before conditions turn critical. The plan below builds it in 10 steps over 7 weeks on one A100 (40 GB), reusing the existing CrowdSafe repo (YOLO11 + Next.js dashboard).

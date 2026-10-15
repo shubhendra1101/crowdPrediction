@@ -49,7 +49,7 @@ w_z = sigmoid(θ · f_z)
 
 where `f_z` = [mean detection confidence, detection count, share of boxes overlapping another with IoU > 0.3, mean box height in px, density-model count]. θ is fitted on validation frames (logistic regression or a 2-layer MLP). Counts are smoothed with an EMA over about 3 s. Density = N_z / area_z.
 
-This fusion is the paper's main contribution; the ablation compares YOLO only, CLIP-EBC only, hard switch (old CrowdSafe) and weighted fusion.
+This fusion is the paper's main contribution; the ablation compares YOLO only, CLIP-EBC only, hard switch (re-implemented baseline, D2), a plain 50/50 average, a single constant weight and the learned weighted fusion. First result (one camera): constant weight ≈ learned fusion — see `results/fusion_ablation.md`; held-out-camera test pending.
 
 ### 2.3 Motion (`motion/`)
 

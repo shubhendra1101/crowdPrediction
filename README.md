@@ -2,11 +2,13 @@
 
 Forecasts crowd density (persons/m²) and stampede risk per zone, minutes ahead, from fixed CCTV cameras, and raises tiered early-warning alerts.
 
+- **`docs/PROJECT_STATUS.md` — start here: plain-language overview, what changed, results, next steps**
 - `CLAUDE.md` — working rules and chosen stack
 - `architecture.md` — components, data flow, schemas
 - `plan.md` — 7-week plan and fallbacks
 - `task.md` — task checklist (source of truth)
-- `CrowdSafe Implementation Guide.md` — full step-by-step guide
+- `CrowdSafe Implementation Guide.md` — original step-by-step plan (historical)
+- `docs/HANDOFF.md` — technical context for continuing the work
 
 ## Setup
 

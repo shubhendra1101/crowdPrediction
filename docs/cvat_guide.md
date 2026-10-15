@@ -1,6 +1,6 @@
 # Correcting head labels in CVAT (T1.5 → T1.6)
 
-You get 100 frames from your classroom camera with a dot already placed on most heads by a model.
+You get a set of frames (100 for H705, 60 for H706 + H103) with a dot already placed on most heads by a model.
 Your job: **make sure there is exactly one dot on every visible head — no more, no less.**
 Expect roughly 3–5 hours in total. You can stop and continue later; CVAT saves your work.
 
@@ -42,7 +42,7 @@ Files (on the laptop, never uploaded to GitHub):
 ## 4. Save and export
 
 1. Press **Ctrl+S** often.
-2. When all 100 frames are done: back on the task page, **Actions → Export task dataset**.
+2. When all frames are done: back on the task page, **Actions → Export task dataset**.
 3. Format: **CVAT for images 1.1**. Untick "Save images". Click **OK** and download the zip.
 
 ## 5. Give it to the agent

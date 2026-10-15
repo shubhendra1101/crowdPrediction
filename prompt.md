@@ -1,5 +1,7 @@
 # prompt.md — Kickoff prompt for the coding agent
 
+> Historical: this is the kickoff prompt from 30 Sep 2026; it mentions an existing repo that was later replaced by a new project (`docs/decisions.md` D2). The resume prompt below still applies.
+
 Paste the block below as your first message to the agent, from the root of the CrowdSafe repo. Paste the short "resume" prompt at the start of later sessions.
 
 ---

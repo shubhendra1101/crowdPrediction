@@ -3,7 +3,7 @@
 Paste this whole file into a new chat (ChatGPT, Gemini, Claude, …) together with: *"You are my engineering
 partner on this project. Read this handoff, then CLAUDE.md, architecture.md, plan.md and task.md from the repo,
 and continue from 'Next steps'."* Repo: https://github.com/shubhendra1101/crowdPrediction (public, branch `main`).
-Local folder: `C:\Users\hp\OneDrive\Desktop\CrownPrediction`. Last updated: 2026-09-30 (end of week 1 of 7).
+Local folder: `C:\Users\hp\OneDrive\Desktop\CrownPrediction`. Last updated: 2026-10-15 (week 2 of 7). Friend-friendly overview: `docs/PROJECT_STATUS.md`.
 
 ---
 
@@ -101,17 +101,37 @@ feature table, so it is developed on Jülich lab trajectories and JuPedSim simul
 - **Labelling pack:** 100 frames (cam01 86, cam02 14; 0–55 heads) with 3,562 pre-placed head points →
   `data/cctv/labels/images.zip` + `cvat_prelabels.zip` (CVAT 1.1, label `head`, points); guide `docs/cvat_guide.md`.
 
+### Week 2 additions (2026-10-12 → 15)
+- **User labels (H705):** 100 frames corrected in CVAT → `data/cctv/labels/heads_corrected.zip` (4,379 heads; +817 vs pre-labels).
+  Reader: `crowdsafe/datasets/cvat.py`. Open question to user: whether "last annotations were bad" meant the pre-labels or the final labels.
+- **Zero-shot counting on H705** (`results/counting_zeroshot_cctv.md`, CPU ONNX; `scripts/eval_cctv_counting.py`, `YoloOnnx`): MAE CLIP-EBC 5.10 (bias +5.09),
+  YOLO11l 6.36 (bias −6.02), CrowdHuman heads 8.04. Detector for fusion = YOLO11l (lower error).
+- **Fusion ablation** (`results/fusion_ablation.md`; `crowdsafe/counting/fusion.py`, `scripts/fusion_ablation.py`; time-block split: val = first 50 % of cam01, test = rest + cam02):
+  test MAE YOLO 6.25 · CLIP-EBC 5.30 · hard switch 5.30 · 50/50 average 1.66 · constant w = 0.43 1.59 · learned fusion 2.09 (val 1.16 → overfits).
+  Gain comes from opposite biases; learned weighting not yet better. Options offered to user: (A) test on new cameras/more labels, (B) reframe contribution.
+- **New recordings** (`configs/rooms.yaml`, feet → m): cam03 = H706 classroom (other-side view, 33.5 min, studying → break exit),
+  cam04 = H103 computer lab (37.7 min, empty → students enter); H705/H706 10.363 × 8.026 × 2.743 m, H103 13.106 × 9.144 × 2.743 m;
+  camera heights 1.98 m (H705/H706), ~2.13 m (H103, approximate). Audits: all 1080p/25 fps, steady; cam04 heads smaller (p10 25 px), darker;
+  no monitor false positives on the empty lab frame; people visible through a glass window in H103 must not be counted.
+- **Labelling pack 2:** 60 frames (30 cam03 + 30 cam04, `--n-per-camera`) → `data/cctv/labels_newcams/` (1,306 pre-placed points; lab frames miss
+  many heads behind monitors). Purpose: held-out-camera test (fit on H705, test on H706 + H103).
+- **Calibration code:** `crowdsafe/calibration/homography.py` (RANSAC homography, px↔m, Shapely zone areas, validation distance,
+  hidden-corner line intersection), tested. Room floor corners are hidden in H705 → asked user for desk-grid measurements (desk length/depth,
+  gap in row, gap between rows, door width) and H103 bench measurements. Room-level area available now: 83.2 m² (H705/H706), 119.8 m² (H103).
+- Docs: original Implementation Guide and prompt.md marked historical; `docs/PROJECT_STATUS.md` added.
+
 ## 7. task.md status
-Done: T0.1–T0.4, T0.6, T1.1, T1.4, T1.5, T5.1, T5.2, T6.1, T6.2, T6.3 (T0.5 dropped). Partly: T1.2 (1 camera), T3.1–T3.3
+Done: T0.1–T0.4, T0.6, T1.1, T1.4–T1.7, T3.7, T3.8 (first, single-camera), T5.1, T5.2, T6.1–T6.3 (T0.5 dropped). Partly: T1.2 (1 camera), T3.1–T3.3
 (wrappers built/tested), T3.5 (ShanghaiTech done; Jülich-video + CCTV parts pending), T5.5 (Jülich split proposed),
 T6.4 (Jülich done; sim + CCTV pending). Open: T1.3, T1.6–T1.7, T2.x, T3.4, T3.6–T3.8, T4.x, T5.3–T5.4, T6.5–T6.6, T7.x, T8.x, T9.x.
 
 ## 8. Waiting on the user
-1. **CVAT correction** of the 100 frames (T1.6), export "CVAT for images 1.1" into `data/cctv/labels/`, say "labels done".
-2. **Floor calibration for H705** (T2.1): 4 tape marks forming a large rectangle on the front aisle, all 4 sides + 1 diagonal
-   in metres, a few seconds of CCTV with tape visible (camera unmoved); plus one desk length and the door width (validation).
+1. **CVAT correction** of the 60 new-camera frames (`data/cctv/labels_newcams/`), export as `newcams_corrected.zip`, say "new labels done".
+2. **Calibration measurements** (T2.1): H705 desk length/depth at the legs, leg-to-leg gap in a row, gap between rows, door width
+   (check); H103 bench depth, gap between bench rows, spacing of neighbouring computers, one check distance; photos. Clarify H706 desks = H705?
 3. **Venue layout sketch** with exit/door widths (T2.2).
-4. **A second camera** (corridor/door/stairs preferred) — needed for a held-out camera test.
+4. Decision on the fusion contribution (A: more cameras/labels, B: reframe) — default A if new labels confirm, else B.
+5. A corridor/door/stairs camera would still help (crowd flow).
 5. Approve defaults: 2 m zones for Jülich; the Jülich val/test split above.
 6. Rotate the Kaggle key; delete notebook 02 from the A100 server.
 
@@ -122,8 +142,8 @@ T6.4 (Jülich done; sim + CCTV pending). Open: T1.3, T1.6–T1.7, T2.x, T3.4, T3
 2. **T2.3 calibration tool** (click points → homography, `ViewTransformer` pattern, zone areas via Shapely) — ready for measurements.
 3. **T5.4 JuPedSim**: propose 3 geometries (bottleneck exit, corridor merge, two-way corridor) for user approval; 15–20 runs
    incl. surges/exit closures > 5 p/m²; long runs give the 2–10 min horizons Jülich cannot.
-4. After labels: import CVAT export (T1.7), counting error per model on the classroom, **fusion** (T3.7) + ablation
-   YOLO / CLIP-EBC / hard switch / fusion (T3.8). Split is by time/video until a second camera exists — say so in results.
+4. After new labels: re-run `eval_cctv_counting.py` on `labels_newcams`, then the ablation with fit on H705 and test on H706 + H103
+   (held-out cameras). After measurements: calibrate cameras, draw zones, persons/m² (T2.4–T2.5).
 5. New A100 notebook when needed: RAFT motion + fused counts on the classroom videos (T4, T5.3); check first whether
    `/root/crowdsafe_work/data/raw` still exists, else re-run notebook 02.
 6. T8 backend + dashboard; T9 evaluation and write-up.
