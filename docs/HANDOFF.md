@@ -103,7 +103,7 @@ feature table, so it is developed on Jülich lab trajectories and JuPedSim simul
 
 ### Week 2 additions (2026-10-12 → 15)
 - **User labels (H705):** 100 frames corrected in CVAT → `data/cctv/labels/heads_corrected.zip` (4,379 heads; +817 vs pre-labels).
-  Reader: `crowdsafe/datasets/cvat.py`. Open question to user: whether "last annotations were bad" meant the pre-labels or the final labels.
+  Reader: `crowdsafe/datasets/cvat.py`. User confirmed (2026-10-18): "bad annotations" referred to the model pre-labels; the final corrected labels are reliable.
 - **Zero-shot counting on H705** (`results/counting_zeroshot_cctv.md`, CPU ONNX; `scripts/eval_cctv_counting.py`, `YoloOnnx`): MAE CLIP-EBC 5.10 (bias +5.09),
   YOLO11l 6.36 (bias −6.02), CrowdHuman heads 8.04. Detector for fusion = YOLO11l (lower error).
 - **Fusion ablation** (`results/fusion_ablation.md`; `crowdsafe/counting/fusion.py`, `scripts/fusion_ablation.py`; time-block split: val = first 50 % of cam01, test = rest + cam02):

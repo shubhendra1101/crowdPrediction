@@ -41,7 +41,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Needs: T1.2, T3.3 weights.
   Result: 2026-09-30 — 100 frames (cam01 86, cam02 14; ≥ 5 s apart, stratified 0–55 heads) pre-labelled with CrowdHuman head centres (3,562 points; CLIP-EBC gives no points) → `data/cctv/labels/images.zip` + `cvat_prelabels.zip`; guide `docs/cvat_guide.md`. Only one camera, so no camera-level held-out split yet.
 - [x] **T1.6 (USER)** Correct pre-labels in CVAT (~5–8 h) and export.
-  Result: 2026-10-12 — user corrected 100 frames in CVAT: 4,379 heads (pre-labels 3,562; +817 added, 96 frames changed); 0 out-of-frame points, 2 near-duplicate pairs kept as labelled.
+  Result: 2026-10-12 — user corrected 100 frames in CVAT: 4,379 heads (pre-labels 3,562; +817 added, 96 frames changed); 0 out-of-frame points, 2 near-duplicate pairs kept as labelled. User confirmed final labels are reliable (weak part was the model pre-labels).
 - [x] **T1.7 (AGENT)** Import labels; split train/val/test **by camera** (≥ 1 camera fully held out); write split file.
   Result: 2026-10-12 — imported (`crowdsafe/datasets/cvat.py`). Single camera → time-block split: val = first 50% of cam01 by time (43 frames), test = rest of cam01 + cam02 (57). No held-out camera yet.
 
