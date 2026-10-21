@@ -1,0 +1,13 @@
+model,band,n,mae,rmse,bias,camera
+detector_only,all,43,6.86,7.65,-6.44,cam01
+density_only,all,43,6.09,6.71,6.09,cam01
+hard_switch,all,43,6.09,6.71,6.09,cam01
+average_50_50,all,43,1.63,2.04,-0.18,cam01
+constant_weight,all,43,1.58,2.05,0.74,cam01
+fusion,all,43,2.1,2.46,-0.33,cam01
+detector_only,all,14,4.36,6.5,-3.21,cam02
+density_only,all,14,2.89,3.7,2.86,cam02
+hard_switch,all,14,2.89,3.7,2.86,cam02
+average_50_50,all,14,1.73,2.44,-0.18,cam02
+constant_weight,all,14,1.62,2.08,0.27,cam02
+fusion,all,14,2.09,2.39,1.49,cam02

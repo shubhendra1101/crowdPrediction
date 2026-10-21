@@ -1,0 +1,8 @@
+# Regions excluded from counting, per camera (image pixels at 1920x1080).
+# Applied identically to ground-truth points and to every model's detections/density,
+# so all methods are scored on the same area.
+cam04:
+  exclude:
+    # Glass window to the neighbouring room (top-left of the H103 view): people seen through it are not in the lab.
+    # Drawn on the empty frame cam04_emptiest_t20s.jpg; approximate rectangle, above the lab's back-row heads (y > 140).
+    glass_window: [[195, 15], [735, 15], [735, 125], [195, 125]]

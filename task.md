@@ -74,13 +74,13 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
 - [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
-  Result: 2026-10-12 — ShanghaiTech MAE A/B: CLIP-EBC 66.95/11.66, YOLO11l 418.3/92.8, CrowdHuman heads 374.2/70.2. Classroom CCTV (100 frames, zero-shot, CPU ONNX): CLIP-EBC 5.10 (+5.09 bias, 12.6%), YOLO11l 6.36 (−6.02, 15.1%), CrowdHuman heads 8.04 (19.4%). `results/counting_zeroshot_cctv.md`. Jülich-video part pending.
+  Result: 2026-10-21 — ShanghaiTech MAE A/B: CLIP-EBC 66.95/11.66, YOLO11l 418.3/92.8, CrowdHuman heads 374.2/70.2. Own CCTV (user-labelled, zero-shot, CPU ONNX): H705 (100 frames) CLIP-EBC 5.10 / YOLO11l 6.36 / heads 8.04; H706 (30) 2.58 / 6.53 / 6.23; H103 lab (30, glass window excluded via `configs/roi.yaml`) 1.97 / 17.63 / 28.23. `results/counting_zeroshot_cctv.md`, `results/counting_zeroshot_newcams.md`. Jülich-video part pending.
 - [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
   Result: 2026-10-12 — no fine-tuning proposed: zero-shot error 12–15% and combining models removes most of it (see T3.8). Revisit only if a second camera is much worse.
 - [x] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
   Result: 2026-10-12 — `crowdsafe/counting/fusion.py` (learned w = sigmoid(θ·f), hard switch, constant weight). Detector chosen by measured error: YOLO11l (6.36) over CrowdHuman heads (8.04).
 - [x] **T3.8 (AGENT)** Ablation: YOLO only / CLIP-EBC only / hard switch / weighted fusion on held-out camera → `results/fusion_ablation.md`.
-  Result: 2026-10-12 — test MAE (57 frames): YOLO11l 6.25 · CLIP-EBC 5.30 · hard switch 5.30 (τ → always density) · 50/50 average 1.66 · constant w=0.43 1.59 · learned fusion 2.09 (val 1.16 → overfits, 6 params / 43 frames). Gain comes from opposite biases; learned weighting not better than a constant weight here. `results/fusion_ablation.md`.
+  Result: 2026-10-21 — single-camera time split: constant weight 1.59 best, learned 2.09. **Held-out rooms (leave-one-room-out, mean MAE):** hard switch 3.16 · CLIP-EBC only 3.22 · 50/50 4.48 · constant weight 4.56 · learned fusion 5.22 · YOLO only 10.17. Learned/constant weights do not transfer across rooms (YOLO undercounts 18/frame in the lab). `results/fusion_ablation_heldout.md`, `results/fusion_loco.md`. Contribution framing needs a user decision.
 
 ### T4 Motion features
 

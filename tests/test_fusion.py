@@ -39,3 +39,13 @@ def test_time_block_split_never_interleaves() -> None:
     df = pd.DataFrame({"camera": ["cam01"] * 6 + ["cam02"] * 2, "t_s": [50, 10, 40, 20, 30, 60, 5, 6]})
     s = split_time_blocks(df, "cam01", 0.5)
     assert set(df.loc[s == "val", "t_s"]) == {10, 20, 30} and (s[df.camera == "cam02"] == "test").all()
+
+
+def test_loco_predict_variants_shapes() -> None:
+    from scripts.fusion_loco import VARIANTS, predict_variants
+
+    feats, det, dens, gt = _synthetic(120)
+    df = pd.DataFrame({"yolo11l": det, "clipebc": dens, "gt": gt, "yolo11l__mean_conf": feats[:, 0],
+                       "yolo11l__n_det": feats[:, 1], "yolo11l__overlap_share": feats[:, 2], "yolo11l__mean_box_h": feats[:, 3]})
+    out, params = predict_variants(df[:80], df[80:], "yolo11l", "clipebc")
+    assert all(v in out for v in VARIANTS) and len(out) == 40 and 0 <= params["w_const"] <= 1

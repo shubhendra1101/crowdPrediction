@@ -22,6 +22,7 @@ from crowdsafe import nbenv  # noqa: E402
 nbenv.limit_threads(nbenv.cpu_limit(default=4))
 
 import cv2  # noqa: E402
+import supervision as sv  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
@@ -29,7 +30,34 @@ from crowdsafe.datasets.cvat import read_cvat_points  # noqa: E402
 from crowdsafe.eval.metrics import band_labels, count_metrics  # noqa: E402
 
 
-def run_model(name: str, args, frames: list[Path]) -> pd.DataFrame:
+def load_roi(path: Path | None) -> dict[str, list[np.ndarray]]:
+    """camera -> list of exclusion polygons (image px)."""
+    if not path or not Path(path).exists():
+        return {}
+    import yaml
+    cfg = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    return {cam: [np.asarray(p, np.float32) for p in (v.get("exclude") or {}).values()] for cam, v in cfg.items()}
+
+
+def outside(points: np.ndarray, polys: list[np.ndarray]) -> np.ndarray:
+    """Boolean mask: points not inside any exclusion polygon."""
+    keep = np.ones(len(points), bool)
+    for poly in polys:
+        keep &= np.array([cv2.pointPolygonTest(poly, (float(x), float(y)), False) < 0 for x, y in points], bool) \
+            if len(points) else keep
+    return keep
+
+
+def density_mask(shape_hw: tuple[int, int], frame_hw: tuple[int, int], polys: list[np.ndarray]) -> np.ndarray:
+    """1 where density counts, 0 inside exclusion polygons (density map resolution)."""
+    m = np.ones(shape_hw, np.uint8)
+    sy, sx = shape_hw[0] / frame_hw[0], shape_hw[1] / frame_hw[1]
+    for poly in polys:
+        cv2.fillPoly(m, [np.round(poly * [sx, sy]).astype(np.int32)], 0)
+    return m
+
+
+def run_model(name: str, args, frames: list[Path], roi: dict | None = None, cams: dict | None = None) -> pd.DataFrame:
     """Per-frame counts (and features) for one model."""
     from crowdsafe.counting.yolo_track import PersonHeadOnnx, YoloOnnx, reliability_features
 
@@ -44,16 +72,25 @@ def run_model(name: str, args, frames: list[Path]) -> pd.DataFrame:
                              max_batch=args.clipebc_batch)
     else:
         raise ValueError(name)
+    roi, cams = roi or {}, cams or {}
     for f in frames:
         bgr = cv2.imread(str(f))
+        polys = roi.get(cams.get(f.name, ""), [])
         t0 = time.perf_counter()
         if name == "clipebc":
-            r = {"clipebc": det.count(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))}
+            dens = det(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
+            if polys:
+                dens = dens * density_mask(dens.shape, bgr.shape[:2], polys)
+            r = {"clipebc": float(dens.sum())}
         elif name == "yolo11l":
             d = det(bgr)
+            if polys and len(d):
+                d = d[outside(d.get_anchors_coordinates(sv.Position.CENTER), polys)]
             r = {"yolo11l": len(d), **{f"yolo11l__{k}": v for k, v in reliability_features(d).items()}}
         else:
             d = det(bgr)
+            if polys and len(d):
+                d = d[outside(d.get_anchors_coordinates(sv.Position.CENTER), polys)]
             heads = d[d.class_id == det.HEAD]
             r = {"phd_heads": len(heads), "phd_persons": int((d.class_id == det.PERSON).sum()),
                  **{f"phd_heads__{k}": v for k, v in reliability_features(heads).items()}}
@@ -75,15 +112,31 @@ def main() -> int:
     ap.add_argument("--yolo-imgsz", type=int, default=1280)
     ap.add_argument("--clipebc-batch", type=int, default=4)
     ap.add_argument("--bands", type=float, nargs="*", default=[20, 40])
+    ap.add_argument("--roi", type=Path, default=Path("configs/roi.yaml"), help="per-camera exclusion polygons")
     ap.add_argument("--out", type=Path, default=Path("results/counting_zeroshot_cctv.md"))
     a = ap.parse_args()
 
     gt = read_cvat_points(a.labels)
     frames = sorted(a.images / n for n in gt if (a.images / n).exists())
-    base = pd.DataFrame({"image": [f.name for f in frames], "gt": [len(gt[f.name]) for f in frames]}).set_index("image")
+    roi = load_roi(a.roi)
+    cams = pd.read_csv(a.frames_csv).set_index("image")["camera"].to_dict() if a.frames_csv.exists() else {}
+    gt_kept = {n: P[outside(P, roi.get(cams.get(n, ""), []))] for n, P in gt.items()}
+    base = pd.DataFrame({"image": [f.name for f in frames], "gt": [len(gt_kept[f.name]) for f in frames],
+                         "gt_excluded": [len(gt[f.name]) - len(gt_kept[f.name]) for f in frames]}).set_index("image")
     if a.frames_csv.exists():
         base = base.join(pd.read_csv(a.frames_csv).set_index("image")[["camera", "t_s"]])
-    per = base.join([run_model(m, a, frames) for m in a.models])
+    parts = []
+    for m in a.models:   # each model's per-frame results are cached, so a crash in one model loses nothing
+        cache = a.out.with_name(f"{a.out.stem}_model_{m}.csv")
+        if cache.exists():
+            parts.append(pd.read_csv(cache).set_index("image"))
+            print(f"{m}: loaded cached results {cache.name}", flush=True)
+            continue
+        r = run_model(m, a, frames, roi, cams)
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        r.reset_index().to_csv(cache, index=False)
+        parts.append(r)
+    per = base.join(parts)
     per["band"] = band_labels(per["gt"].to_numpy(), a.bands)
     preds = [c for c in ("yolo11l", "phd_heads", "phd_persons", "clipebc") if c in per]
     table = count_metrics(per.reset_index(), preds, "gt", "band")
@@ -97,7 +150,8 @@ def main() -> int:
           f"({per['camera'].value_counts().to_dict() if 'camera' in per else ''}), {int(per['gt'].sum())} heads. "
           "Same camera for all frames (H705 Front) — no held-out camera. ONNX on CPU; YOLO11l at "
           f"{a.yolo_imgsz} px, conf 0.25; CrowdHuman conf 0.2; CLIP-EBC 224 px windows. Bands = heads per frame "
-          "(no floor calibration yet, so not persons/m²). `mape_%` = mean absolute error as % of the true count.", "",
+          "(no floor calibration yet, so not persons/m²). `mape_%` = mean absolute error as % of the true count. "
+          f"Exclusion regions from `{a.roi}` removed {int(per['gt_excluded'].sum())} labelled heads; the same regions are removed from every model.", "",
           "| Model | Band | n | MAE | RMSE | Bias | MAPE % |", "| --- | --- | --- | --- | --- | --- | --- |"]
     md += [f"| {r.model} | {r.band} | {r.n} | {r.mae} | {r.rmse} | {r.bias} | {r._7 if r.band == 'all' else ''} |"
            for r in table.itertuples()]
