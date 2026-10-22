@@ -1,0 +1,57 @@
+# Calibration input (T2.3). Image points were read off the frame named below (empty or near-empty moment),
+# desk-top corners auto-detected and edge-snapped, then checked visually (see results/calibration.md).
+room: H103
+cameras: [cam04]
+frame: data/cctv/audit/cam04_emptiest_t20s.jpg
+method: edges
+note: tables run front->back; X = across the room from the left wall (col1 single 0.56, gap 2.18, col2 double 1.12, gap 1.94, col3 double 1.12,
+  gap 1.76, col4 single 0.56); Y = from the front wall
+edges:
+- segments:
+  - [454.8, 338.5, 557.3, 389.8]
+  - [630.9, 427.7, 829.2, 532.2]
+  - [1155.4, 679.9, 954.2, 584.7]
+  axis: X
+  value: 2.74
+  what: col2 left long edge (table top)
+- segments:
+  - [1074.1, 472.8, 1177.2, 507.2]
+  - [1363.2, 576.7, 1229.2, 527.3]
+  axis: X
+  value: 3.86
+  what: col2 right long edge (table top)
+- segments:
+  - [1536.3, 612.8, 1401.2, 710.2]
+  - [1353.5, 731.2, 1467.9, 653.3]
+  axis: Y
+  value: 1.75
+  what: 'col2 near-end edge; tables start 1.75 m from the front wall (approximate: the end piece may protrude)'
+- points:
+  - [265.5, 247.0]
+  axis: Y
+  value: 13.106
+  what: 'far end of col2 (left corner), at the back wall: tables run to the back wall (user)'
+- points:
+  - [265.5, 247.0]
+  axis: X
+  value: 2.74
+  what: same far-end corner, left edge of col2
+verticals:
+- [831.2, 5.6, 831.6, 124.4]
+- [971.9, 166.9, 975.1, 55.6]
+- [1088.6, 69.3, 1084.0, 181.9]
+- [1693.4, 333.4, 1711.6, 170.9]
+- [96.2, 161.8, 105.8, 351.9]
+- [1570.5, 473.3, 1545.4, 608.6]
+- [1117.9, 880.6, 1135.3, 705.7]
+- [1291.2, 779.2, 1253.9, 979.7]
+- [1870.5, 500.6, 1890.3, 384.1]
+table_height_edge:
+  segment: [1291.2, 779.2, 1253.9, 979.7]
+  what: 'near vertical edge of the col2 end panel: top on the table plane, bottom on the floor'
+floor: {method: table_edge}
+checks:
+  column_edges_x_m: [0.56, 2.74, 3.86, 5.8, 6.92, 8.68, 9.24]
+  camera_height_m: 2.58
+  room_m: [9.144, 13.106]
+camera_height_prior: {value_m: 2.58, weight: 200, why: 'table edges fix X and Y but leave the camera height loose (2.29-2.53 m fit equally well); user measured 2.58 m'}

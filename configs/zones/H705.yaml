@@ -1,0 +1,58 @@
+# Zones (T2.4): floor polygons in metres, in the room frame of configs/cameras/<room>.yaml (floor Z = 0).
+# Seating blocks follow the desk columns/rows found by the calibration; boundaries are approximate.
+room: H705
+cameras: [cam01, cam02]
+frame: X along the desk rows (towards the window-side wall), Y from the front row towards the back wall; origin = front-left corner of the column-4
+  front desk
+head_height_m: 1.2
+zones:
+  front_aisle:
+  - [-5.3, -2.0]
+  - [2.8, -2.0]
+  - [2.8, 0.0]
+  - [-5.3, 0.0]
+  front_left:
+  - [-5.3, 0.0]
+  - [-2.1, 0.0]
+  - [-2.1, 2.9]
+  - [-5.3, 2.9]
+  front_centre:
+  - [-2.1, 0.0]
+  - [1.15, 0.0]
+  - [1.15, 2.9]
+  - [-2.1, 2.9]
+  front_right:
+  - [1.15, 0.0]
+  - [2.8, 0.0]
+  - [2.8, 2.9]
+  - [1.15, 2.9]
+  middle_left:
+  - [-5.3, 2.9]
+  - [-2.1, 2.9]
+  - [-2.1, 5.8]
+  - [-5.3, 5.8]
+  middle_centre:
+  - [-2.1, 2.9]
+  - [1.15, 2.9]
+  - [1.15, 5.8]
+  - [-2.1, 5.8]
+  middle_right:
+  - [1.15, 2.9]
+  - [2.8, 2.9]
+  - [2.8, 5.8]
+  - [1.15, 5.8]
+  back_left:
+  - [-5.3, 5.8]
+  - [-2.1, 5.8]
+  - [-2.1, 9.7]
+  - [-5.3, 9.7]
+  back_centre:
+  - [-2.1, 5.8]
+  - [1.15, 5.8]
+  - [1.15, 9.7]
+  - [-2.1, 9.7]
+  back_right:
+  - [1.15, 5.8]
+  - [2.8, 5.8]
+  - [2.8, 9.7]
+  - [1.15, 9.7]

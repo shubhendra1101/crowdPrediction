@@ -1,37 +1,47 @@
-# Floor measurements for camera calibration (T2.1), supplied by the user 2026-10-21 with photos in
-# data/cctv/calibration/ (original notes: data/cctv/calibration/measurments.txt). Values in metres.
-# Desks in H705/H706 are desk+bench units in 5 columns (front -> back); "gap" = empty floor between units.
+# Floor measurements for camera calibration (T2.1), supplied by the user with photos in data/cctv/calibration/
+# (original notes: data/cctv/calibration/measurments.txt, corrected version 2026-10-22). Values in metres.
+# Desks in H705/H706 are desk+bench units in 5 columns facing the board (front wall with the doors).
+# How each value is used: configs/calibration/<room>.yaml; results: results/calibration.md.
 H705:
-  desk_length_m: 1.04          # long side, across the room
-  desk_depth_m: 0.91
-  column_gaps_m: [0.79, 0.82, 0.87, 0.78]   # between columns 1-2, 2-3, 3-4, 4-5 (left -> right)
-  row_spacing_m: 1.04          # "gap b/w rows" — OPEN QUESTION: front-leg-to-front-leg pitch, or empty gap?
-  rows_per_column: 11          # user filled empty front/back space with imaginary benches
+  desk_length_m: 1.00          # long side, parallel to the board — used as the calibration scale
+  desk_depth_m: 0.91           # whole desk+bench unit
+  column_gaps_m: [0.75, 0.79, 0.80, 0.75]   # between columns 1-2, 2-3, 3-4, 4-5 (left -> right) — check only
+  row_spacing_m: 0.96          # 95–97 cm, front leg to front leg — check only
+  rows_per_column: 11          # counting imaginary benches in the empty front/back space
   door_m: {width: 1.20, height: 2.23}
   podium_m: {width: 0.61, height: 1.23}
-  camera_height_note: "user: nearly the door height (~2.2 m); earlier given as 6 ft 6 in (1.98 m)"
+  camera_height_m: 2.23        # user: "nearly the door height"; used to place the floor (gives desk height 0.78 m)
   consistency_check: >
-    5 x 1.04 + (0.79+0.82+0.87+0.78) = 8.46 m across, but room width was given as 8.03 m (26 ft 4 in);
-    11 rows x 1.04 = 11.44 m front-back vs room length 10.36 m (34 ft). Not yet resolved — calibration will
-    use local desk distances, and the door width is the independent check.
+    5 x 1.00 + (0.75+0.79+0.80+0.75) = 8.09 m across vs room width 8.03 m (0.8 %); 11 rows x 0.96 = 10.56 m vs
+    room length 10.36 m (1.9 %) — consistent. (The earlier values 1.04 m / 0.79–0.87 m gaps did not add up.)
 H706:
-  desk_length_m: 1.04
+  desk_length_m: 1.00
   desk_depth_m: 0.91
-  column_gaps_m: [0.89, 0.89, 0.91, 0.88]
-  row_spacing_m: 0.96          # user: 95–97 cm
+  column_gaps_m: [0.75, 0.79, 0.80, 0.75]   # text identical to H705
+  row_spacing_m: 0.96          # text identical to H705; the calibration measures ~0.87–0.90 m here (see note)
   rows_per_column: 11
   door_m: {width: 1.12, height: 2.13}
   podium_m: {width: 0.61, height: 1.23}
+  camera_height_note: >
+    user: "nearly the door height" (2.13 m). The calibration puts this camera 1.77 m above the desk tops, i.e.
+    ~2.57 m above the floor with 0.80 m desks, and the two doors independently give 2.71–2.73 m — the camera is
+    mounted near the 2.74 m ceiling, not at door height. Calibration uses desk height 0.80 m (same furniture as H705).
+  consistency_check: >
+    Same arithmetic as H705 (8.09 vs 8.03 m). Earlier H706 values (5 x 1.04 + 0.89+0.89+0.91+0.88 = 8.77 m vs 8.03 m,
+    9 % over) were inconsistent too but were not flagged at the time — only H705 and H103 were summed.
+    Row spacing: the text gives 0.96 m, but the fitted desk positions give 0.87 m and the free fit puts the front
+    wall 10.5–10.9 m from the camera (room length 10.36 m); forcing 0.96 m would push it to 10.7–11.4 m. The
+    calibration therefore does not impose the row spacing. Please re-measure H706 front-leg-to-front-leg spacing.
 H103:
   room_height_m: 2.78
-  desk_length_m: 1.55
+  desk_length_m: 1.55          # one desk segment along the column (front -> back)
   desk_depth_m: {single: 0.56, double: 1.12}   # columns 1 and 4 single, 2 and 3 double
   column_gaps_m: [2.18, 1.94, 1.76]            # left -> right
-  monitor_spacing_m: 0.35                       # gap between neighbouring monitors
+  monitor_spacing_m: 0.35
   monitor_size_m: {length: 0.28, width: 0.47}
   monitors_per_column: {col1: 0, col2: 28, col3: 28, col4: "6 + 6 (pillar 0.80 m wide between)"}
   front_wall_to_first_desk_m: 1.75
   door_m: {width: 1.25, height: 2.58}
-  camera_height_note: "about door height (2.58 m) per user; earlier ~7 ft (2.13 m)"
+  camera_height_m: 2.58        # user: same as door height; calibration finds 2.51 m (−3 %) without using it
   consistency_check: >
     0.56 + 2.18 + 1.12 + 1.94 + 1.12 + 1.76 + 0.56 = 9.24 m across vs room width 9.14 m (1 % — consistent).

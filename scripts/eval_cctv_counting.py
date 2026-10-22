@@ -148,7 +148,7 @@ def main() -> int:
     md = ["# Zero-shot counting on the classroom CCTV (T3.5, CCTV part)", "",
           f"Generated {time.strftime('%Y-%m-%d %H:%M')}. Ground truth: user-corrected CVAT head points, {len(per)} frames "
           f"({per['camera'].value_counts().to_dict() if 'camera' in per else ''}), {int(per['gt'].sum())} heads. "
-          "Same camera for all frames (H705 Front) — no held-out camera. ONNX on CPU; YOLO11l at "
+          "ONNX on CPU; YOLO11l at "
           f"{a.yolo_imgsz} px, conf 0.25; CrowdHuman conf 0.2; CLIP-EBC 224 px windows. Bands = heads per frame "
           "(no floor calibration yet, so not persons/m²). `mape_%` = mean absolute error as % of the true count. "
           f"Exclusion regions from `{a.roi}` removed {int(per['gt_excluded'].sum())} labelled heads; the same regions are removed from every model.", "",

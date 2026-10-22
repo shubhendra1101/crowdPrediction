@@ -1,0 +1,101 @@
+# Calibration input (T2.3). Image points were read off the frame named below (empty or near-empty moment),
+# desk-top corners auto-detected and edge-snapped, then checked visually (see results/calibration.md).
+room: H706
+cameras: [cam03]
+frame: data/cctv/audit/cam03_emptiest_t1470s.jpg
+method: rectangles
+desk_length_m: 1.0
+ref: c0r0
+corner_order: near-left, near-right, far-right, far-left (near = closer to camera); null = hidden
+rectangles:
+  c-1r2:
+  - [854.7, 437.9]
+  - [1007.0, 467.8]
+  - [1070.0, 448.2]
+  - [904.0, 421.0]
+  c0r3:
+  - [1240.8, 438.2]
+  - [1447.7, 472.5]
+  - [1476.9, 453.3]
+  - [1291.7, 424.6]
+  c0r2:
+  - [1153.5, 490.0]
+  - [1377.2, 528.6]
+  - [1419.2, 504.8]
+  - [1207.9, 470.8]
+  c-1r0:
+  - [572.4, 547.5]
+  - [730.1, 596.0]
+  - [806.8, 563.3]
+  - [643.6, 521.5]
+  c0r1:
+  - [1045.1, 554.4]
+  - [1291.2, 607.7]
+  - [1336.7, 573.5]
+  - [1100.6, 528.6]
+  c-2r-1:
+  - [206.5, 553.3]
+  - [272.8, 593.8]
+  - [347.5, 567.9]
+  - [264.1, 530.9]
+  c0r0:
+  - [886.5, 643.4]
+  - [1155.6, 714.1]
+  - [1221.8, 663.4]
+  - [960.3, 602.9]
+  c1r0:
+  - [1426.6, 783.3]
+  - null
+  - null
+  - [1472.1, 720.7]
+  c0r-2:
+  - [437.5, 889.0]
+  - [699.6, 1058.6]
+  - [829.0, 968.9]
+  - [547.9, 830.1]
+lines_rough:
+  duct:
+  - [40, 240]
+  - [200, 205]
+  - [400, 163]
+  - [600, 128]
+  - [800, 104]
+  - [950, 93]
+  doorL_l:
+  - [966, 130]
+  - [968, 330]
+  doorL_r:
+  - [1068, 130]
+  - [1071, 330]
+  wallR:
+  - [1716, 90]
+  - [1713, 430]
+  doorR_l:
+  - [1609, 155]
+  - [1604, 420]
+  tv_top:
+  - [1205, 104]
+  - [1428, 107]
+  tv_bot:
+  - [1206, 248]
+  - [1428, 252]
+floor: {method: desk_height, desk_height_m: 0.8, source: 'same desk model as H705, where camera height 2.23 m gives 0.80 m'}
+doors:
+  height_m: 2.13
+  width_m: 1.12
+  corners_px:
+    left:
+    - [965, 125]
+    - [1063, 121]
+    - [1071, 345]
+    - [975, 333]
+    right:
+    - [1609.5, 146]
+    - [1716, 158]
+    - null
+    - [1603, 421]
+  corner_order: top-left, top-right, bottom-right, bottom-left (outer door frame)
+checks:
+  row_pitch_m: 0.96
+  column_pitch_m: [1.75, 1.79, 1.8, 1.75]
+  room_m: [8.026, 10.363]

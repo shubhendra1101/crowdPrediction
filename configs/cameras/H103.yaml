@@ -1,0 +1,20 @@
+room: H103
+cameras: [cam04]
+source: configs/calibration/H103.yaml
+generated: 2026-10-22 14:35
+approximate: true
+frame_note: world metres, Z up, floor at Z = 0; see source config for the axes
+head_height_m: 1.2
+camera:
+  K:
+  - [1356.5414, 0.0, 960.0]
+  - [0.0, 1356.5414, 540.0]
+  - [0.0, 0.0, 1.0]
+  dist: [-0.305241, 0.040874, 0.0, 0.0, 0.0]
+  rvec: [1.867087, -0.692494, 0.481438]
+  tvec: [0.010904, 2.368103, 0.820921]
+  image_size: [1920, 1080]
+  note: fitted from known table edges and vertical lines
+checks: {edge_rms_px: 4.0, vertical_rms_px: 0.81, f_px: 1356.5, k1: -0.305, k2: 0.041, camera_above_table_m: 1.826, table_height_m: 0.676, camera_above_floor_m: 2.502,
+  camera_above_floor_without_prior_m: 2.286, camera_above_floor_measured_m: 2.58, camera_height_used_as_soft_constraint: true, edge_x0.56_found_m: 0.705,
+  edge_x5.80_found_m: 5.888, edge_x6.92_found_m: 6.886, edge_x8.68_found_m: 8.862, edge_x9.24_found_m: 9.294, camera_distance_from_front_wall_m: 0.132}

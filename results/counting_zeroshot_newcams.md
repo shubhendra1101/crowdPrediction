@@ -1,6 +1,6 @@
 # Zero-shot counting on the classroom CCTV (T3.5, CCTV part)
 
-Generated 2026-10-21 22:27. Ground truth: user-corrected CVAT head points, 60 frames ({'cam03': 30, 'cam04': 30}), 2336 heads. Same camera for all frames (H705 Front) — no held-out camera. ONNX on CPU; YOLO11l at 1280 px, conf 0.25; CrowdHuman conf 0.2; CLIP-EBC 224 px windows. Bands = heads per frame (no floor calibration yet, so not persons/m²). `mape_%` = mean absolute error as % of the true count. Exclusion regions from `configs\roi.yaml` removed 16 labelled heads; the same regions are removed from every model.
+Generated 2026-10-22 13:59. Ground truth: user-corrected CVAT head points, 60 frames ({'cam03': 30, 'cam04': 30}), 2336 heads. Same camera for all frames (H705 Front) — no held-out camera. ONNX on CPU; YOLO11l at 1280 px, conf 0.25; CrowdHuman conf 0.2; CLIP-EBC 224 px windows. Bands = heads per frame (no floor calibration yet, so not persons/m²). `mape_%` = mean absolute error as % of the true count. Exclusion regions from `configs\roi.yaml` removed 1 labelled heads; the same regions are removed from every model.
 
 | Model | Band | n | MAE | RMSE | Bias | MAPE % |
 | --- | --- | --- | --- | --- | --- | --- |

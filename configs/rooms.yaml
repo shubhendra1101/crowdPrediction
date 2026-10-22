@@ -21,9 +21,15 @@ rooms:
     height_m: 2.743       # 9 ft
     source: "user, measured"
 
+# Camera heights: user values (2026-10-22: "about door height", replacing the earlier 6 ft 6 in / 7 ft) and what the
+# calibration (results/calibration.md) finds. Calibrated camera models: configs/cameras/<room>.yaml.
 cameras:
-  cam01: {room: H705, mount: top corner, height_m: 1.981, height_note: "6 ft 6 in", content: "lecture (72 min)"}
-  cam02: {room: H705, mount: top corner, height_m: 1.981, height_note: "6 ft 6 in", content: "lecture -> mass exit -> empty (15 min)"}
-  cam03: {room: H706, mount: "top corner, opposite side to the H705 view", height_m: 1.981, height_note: "6 ft 6 in (same as H705)",
+  cam01: {room: H705, mount: "front wall, corner", height_m: 2.23, calibrated_height_m: 2.23,
+          height_note: "user ~door height; used to place the floor", content: "lecture (72 min)"}
+  cam02: {room: H705, mount: "same camera as cam01", height_m: 2.23, calibrated_height_m: 2.23,
+          height_note: "user ~door height", content: "lecture -> mass exit -> empty (15 min)"}
+  cam03: {room: H706, mount: "back wall, corner, near the ceiling", height_m: 2.13, calibrated_height_m: 2.57,
+          height_note: "user said ~door height (2.13 m); calibration 2.57 m (desk model) and 2.71-2.73 m (doors)",
           content: "students studying, then leaving at break"}
-  cam04: {room: H103, mount: top corner, height_m: 2.134, height_note: "about 7 ft — approximate", content: "empty lab, then students entering"}
+  cam04: {room: H103, mount: "front, corner", height_m: 2.58, calibrated_height_m: 2.51,
+          height_note: "user ~door height; calibration 2.51 m (-3 %) without using it", content: "empty lab, then students entering"}

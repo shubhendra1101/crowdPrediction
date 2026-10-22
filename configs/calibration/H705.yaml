@@ -1,0 +1,102 @@
+# Calibration input (T2.3). Image points were read off the frame named below (empty or near-empty moment),
+# desk-top corners auto-detected and edge-snapped, then checked visually (see results/calibration.md).
+room: H705
+cameras: [cam01, cam02]
+frame: data/cctv/audit/cam02_emptiest_t765s.jpg
+method: rectangles
+note: cam01 and cam02 are the same fixed camera (phase correlation shift < 1 px between their empty frames)
+desk_length_m: 1.0
+ref: c4r0
+corner_order: near-left, near-right, far-right, far-left (near = closer to camera); null = hidden
+rectangles:
+  c4r0:
+  - [772.6, 528.3]
+  - [1062.4, 654.3]
+  - [1153.4, 605.4]
+  - [866.9, 494.4]
+  c4r1:
+  - [986.1, 446.9]
+  - [1247.0, 541.6]
+  - [1310.8, 508.4]
+  - [1054.3, 426.7]
+  c4r2:
+  - [1146.7, 391.7]
+  - [1375.8, 463.5]
+  - [1424.0, 443.1]
+  - [1191.6, 377.7]
+  c1r2:
+  - [469.8, 222.0]
+  - [532.4, 238.7]
+  - [588.0, 231.9]
+  - [501.1, 209.9]
+  c1r3:
+  - [575.6, 200.3]
+  - [664.9, 217.2]
+  - [715.3, 213.0]
+  - [622.0, 194.9]
+  c2r0:
+  - [288.9, 317.5]
+  - [374.9, 358.0]
+  - [455.5, 341.9]
+  - [357.7, 302.9]
+  c2r1:
+  - [458.5, 280.9]
+  - [561.9, 316.5]
+  - [634.3, 301.7]
+  - [520.5, 270.9]
+  c3r0:
+  - [460.9, 392.0]
+  - [610.4, 465.3]
+  - [707.4, 437.5]
+  - [546.2, 372.8]
+  c3r1:
+  - [659.5, 344.1]
+  - [826.2, 401.0]
+  - [892.0, 384.7]
+  - [740.1, 328.3]
+  c3r2:
+  - [838.7, 310.2]
+  - [1000.7, 351.8]
+  - [1058.6, 337.7]
+  - [887.6, 292.0]
+  c4r9:
+  - [1616.4, 251.1]
+  - [1724.5, 291.3]
+  - [1724.4, 288.8]
+  - [1626.9, 250.4]
+  c5r0:
+  - [1295, 764]
+  - null
+  - [1757, 840]
+  - [1370, 691]
+  c5r1:
+  - [1443, 620]
+  - [1780, 748]
+  - [1790, 689]
+  - [1487, 583]
+lines_rough:
+  stage:
+  - [180, 530]
+  - [370, 690]
+  - [560, 850]
+  - [735, 990]
+  w1:
+  - [1245, 45]
+  - [1243, 190]
+  w2:
+  - [1290, 45]
+  - [1288, 185]
+  w3:
+  - [1440, 55]
+  - [1438, 185]
+  w4:
+  - [1490, 58]
+  - [1487, 185]
+  w5:
+  - [1580, 72]
+  - [1575, 210]
+floor: {method: camera_height, camera_height_m: 2.23, source: 'user: camera nearly at door height (door 2.23 m)'}
+checks:
+  row_pitch_m: 0.96
+  column_pitch_m: [1.75, 1.79, 1.8, 1.75]
+  room_m: [8.026, 10.363]

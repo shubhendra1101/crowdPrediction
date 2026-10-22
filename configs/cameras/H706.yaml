@@ -1,0 +1,38 @@
+room: H706
+cameras: [cam03]
+source: configs/calibration/H706.yaml
+generated: 2026-10-22 14:35
+approximate: true
+frame_note: world metres, Z up, floor at Z = 0; see source config for the axes
+head_height_m: 1.2
+camera:
+  K:
+  - [1433.8329, 0.0, 960.0]
+  - [0.0, 1433.8329, 540.0]
+  - [0.0, 0.0, 1.0]
+  dist: [-0.39609, 0.119551, 0.0, 0.0, 0.0]
+  rvec: [1.840541, 0.61129, -0.52652]
+  tvec: [-0.178935, 1.075779, 4.792029]
+  image_size: [1920, 1080]
+  note: fitted from desk-top rectangles
+checks:
+  reprojection_rms_px: 3.64
+  line_rms_px: 1.83
+  f_px: 1433.8
+  k1: -0.396
+  k2: 0.12
+  desk_top_depth_m: 0.375
+  camera_above_desk_m: 1.769
+  row_pitch_fit_m: 0.866
+  row_pitch_measured_m: 0.96
+  column_pitch_fit_m: [1.742, 1.762, 1.84]
+  column_pitch_measured_m: [1.75, 1.79, 1.8, 1.75]
+  desk_height_m: 0.8
+  camera_above_floor_m: 2.569
+  door_left_width_m: 1.19
+  door_left_camera_above_floor_m: 2.725
+  door_left_wall_distance_m: 10.895
+  door_right_width_m: 0.917
+  door_right_camera_above_floor_m: 2.713
+  door_right_wall_distance_m: 10.476
+  door_width_measured_m: 1.12

@@ -1,6 +1,6 @@
 # Leave-one-room-out counting evaluation (T3.8)
 
-Generated 2026-10-21 22:28. Each room is held out in turn; θ / τ / w are fitted on the other two rooms only. Frames: {'H103': 30, 'H705': 100, 'H706': 30}. Ground truth = user-corrected CVAT heads (H103 glass-window area excluded for labels and models alike, `configs/roi.yaml`). Error in people per frame.
+Generated 2026-10-22 13:59. Each room is held out in turn; θ / τ / w are fitted on the other two rooms only. Frames: {'H103': 30, 'H705': 100, 'H706': 30}. Ground truth = user-corrected CVAT heads (H103 glass-window area excluded for labels and models alike, `configs/roi.yaml`). Error in people per frame.
 
 ## Per held-out room
 

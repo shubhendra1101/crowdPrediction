@@ -1,0 +1,47 @@
+  density maps 10/20
+  density maps 20/20
+H103 head 1.2 m: 30 frames done
+H103 head 1.1 m: 30 frames done
+H103 head 1.3 m: 30 frames done
+H103 head 1.6 m: 30 frames done
+H706 head 1.2 m: 30 frames done
+H706 head 1.1 m: 30 frames done
+H706 head 1.3 m: 30 frames done
+H706 head 1.6 m: 30 frames done
+  density maps 10/50
+  density maps 20/50
+  density maps 30/50
+  density maps 40/50
+  density maps 50/50
+H705 head 1.2 m: 100 frames done
+H705 head 1.1 m: 100 frames done
+H705 head 1.3 m: 100 frames done
+H705 head 1.6 m: 100 frames done
+C:\Users\hp\OneDrive\Desktop\CrownPrediction\scripts\zone_density.py:132: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  by_room = d.groupby("room").apply(summ).reset_index()
+C:\Users\hp\OneDrive\Desktop\CrownPrediction\scripts\zone_density.py:133: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  by_zone = d.groupby(["room", "zone"]).apply(summ).reset_index()
+C:\Users\hp\OneDrive\Desktop\CrownPrediction\scripts\zone_density.py:134: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  sens = df[df["gt_density"].notna()].groupby(["room", "head_height_m"]).apply(summ).reset_index()
+room  zone_frames  mean_gt_density  max_gt_density  mae_density  bias_density  mae_count
+H103        300.0            0.391           1.294        0.078         0.057       0.89
+H705       1000.0            0.543           1.670        0.101         0.059       0.80
+H706        300.0            0.424           1.399        0.081         0.025       0.56
+room  head_height_m  zone_frames  mean_gt_density  max_gt_density  mae_density  bias_density  mae_count
+H103            1.1        300.0            0.374           0.949        0.067         0.042       0.77
+H103            1.2        300.0            0.391           1.294        0.078         0.057       0.89
+H103            1.3        300.0            0.392           1.381        0.093         0.072       1.07
+H103            1.6        300.0            0.385           1.661        0.044         0.020       0.52
+H705            1.1       1000.0            0.501           1.273        0.127         0.087       1.03
+H705            1.2       1000.0            0.543           1.670        0.101         0.059       0.80
+H705            1.3       1000.0            0.550           1.879        0.103         0.067       0.85
+H705            1.6       1000.0            0.549           3.132        0.108         0.063       1.01
+H706            1.1        300.0            0.390           1.166        0.086         0.040       0.59
+H706            1.2        300.0            0.424           1.399        0.081         0.025       0.56
+H706            1.3        300.0            0.428           1.562        0.094         0.042       0.64
+H706            1.6        300.0            0.470           2.757        0.088         0.013       0.57
+room
+H103    97.9
+H705    96.4
+H706    94.3
+EXIT 0

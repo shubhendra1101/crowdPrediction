@@ -51,14 +51,43 @@ On the public ShanghaiTech benchmark, CLIP-EBC's error is 67 (Part A, very dense
 - **(B)** Keep pushing the fusion with more rooms and labels. This costs much more labelling time, and the chances look low.
 - **(C) Not planned:** fine-tune CLIP-EBC on our frames to remove the H705 offset. The project rules say to ask first, and errors of 2–3 people are already small.
 
-## 3. People per m² (camera calibration): in progress
+## 3. People per m² (camera calibration): done, approximate
 
-Counting gives people *per frame*. Safety thresholds are in people per **m²** (below 2 safe, 2–4 crowded, 4–5 high risk, above 5 critical). To convert, each camera image is mapped to the real floor (a *homography*) using known distances: desk sizes, gaps and the door width.
+Counting gives people *per frame*. Safety thresholds are in people per **m²** (below 2 safe, 2–4 crowded, 4–5 high risk, above 5 critical). Converting needs the camera's exact view of the floor.
 
-- **H103 lab:** the measurements add up (desks + gaps = 9.24 m against a 9.14 m room width, about 1% off). Ready to calibrate.
-- **H706:** looks consistent. Ready to calibrate.
-- **H705:** the numbers disagree. Desks + gaps = 8.46 m across, but the room width is 8.03 m. Front-to-back, 11 × 1.04 m = 11.4 m against a 10.36 m room length. One open question is whether "1.04 m between rows" means front-leg to front-leg, or the empty space between rows. **To be clarified before calibrating H705.**
-- **Camera heights:** two different values were given (door height vs. the earlier estimate). Still to be confirmed.
+**Method** (
+esults/calibration.md):
+- A full camera model is fitted per room: zoom, lens bending (the CCTV lenses are wide-angle and bend straight lines) and the camera's position and tilt.
+- **Classrooms:** every desk top is a 1.00 m rectangle; straight edges (doors, ceiling duct, stage edge) pin the lens bending.
+- **Lab:** the table edges' known positions and the vertical edges are used.
+- People are placed on the floor plan through their heads, at seated head height (1.2 m).
+
+**Checks against measurements the fit never used:**
+
+| Room | Check | Calibration | Measured |
+|---|---|---|---|
+| H705 | row spacing | 0.99 m | 0.96 m (+3 %) |
+| H705 | desk + gap across | 1.69 m | 1.77 m (−5 %) |
+| H706 | desk + gap across | 1.78 m | 1.77 m (+1 %) |
+| H706 | door width | 1.19 m | 1.12 m (+6 %) |
+| H103 | hidden columns 3–4 position | within 0.03–0.18 m | — |
+
+**Two things that disagree with the notes:**
+- The **H706 camera** is mounted near the ceiling (~2.6–2.7 m), not at door height.
+- H706 rows look about **0.87 m** apart in the image, not 0.96 m. The H706 notes were copied from H705.
+
+**Zones** are 3×3 blocks of seats plus the front aisle, each 4–16 m².
+
+**Density per zone, CLIP-EBC vs hand labels, 160 frames:**
+
+| Room | Error (persons/m²) | Highest true density |
+|---|---|---|
+| H705 | 0.10 | 1.7 |
+| H706 | 0.08 | 1.4 |
+| H103 | 0.08 | 1.3 |
+
+- 94–98 % of labelled heads fall inside a zone.
+- Changing the assumed head height (1.1–1.6 m) changes the error by at most 0.03.
 
 ## 4. Forecasting a few minutes ahead: works where it matters
 
@@ -70,14 +99,13 @@ Tested on the public Jülich pedestrian experiments, which have real measured cr
 **Conclusion:** the forecaster's value is a trustworthy "worst case in the next minute", which is exactly what an early-warning system needs.
 
 ## 5. Still to do (weeks 4–7)
-1. Calibrate the cameras → people per m² per zone.
-2. Crowd-motion warning signs from video (RAFT optical flow: flow collapse, turbulence, "crowd pressure").
-3. Risk engine and tiered alerts, with hysteresis so alerts don't flicker. Measure how many seconds of warning they give.
-4. Simulated dangerous scenarios (JuPedSim), since we can't film a real stampede.
-5. Live dashboard demo (FastAPI + Next.js).
-6. Final evaluation and paper figures.
+1. Crowd-motion warning signs from video (RAFT optical flow: flow collapse, turbulence, "crowd pressure").
+2. Risk engine and tiered alerts, with hysteresis so alerts don't flicker. Measure how many seconds of warning they give.
+3. Simulated dangerous scenarios (JuPedSim), since we can't film a real stampede.
+4. Live dashboard demo (FastAPI + Next.js).
+5. Final evaluation and paper figures.
 
 ## Bottom line
-- **Is the model working?** Yes. Counting is accurate (2–5 people error per frame) on rooms it was never trained on, and the forecaster gives reliable upper-bound warnings.
+- **Is the model working?** Yes. Counting is accurate (2–5 people error per frame) on rooms it was never trained on, density per zone is within about 0.1 persons/m², and the forecaster gives reliable upper-bound warnings.
 - **What didn't work:** the learned YOLO+CLIP-EBC fusion. It is reported honestly as a negative result.
-- **What's blocking:** only the H705 measurement clarifications and the camera heights. Everything else can proceed.
+- **What's blocking:** nothing. Optional: re-measure the H706 row spacing and confirm the H706 camera height.

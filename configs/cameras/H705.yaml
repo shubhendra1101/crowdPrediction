@@ -1,0 +1,31 @@
+room: H705
+cameras: [cam01, cam02]
+source: configs/calibration/H705.yaml
+generated: 2026-10-22 14:35
+approximate: true
+frame_note: world metres, Z up, floor at Z = 0; see source config for the axes
+head_height_m: 1.2
+camera:
+  K:
+  - [1308.0619, 0.0, 960.0]
+  - [0.0, 1308.0619, 540.0]
+  - [0.0, 0.0, 1.0]
+  dist: [-0.258803, 0.0, 0.0, 0.0, 0.0]
+  rvec: [1.864813, 0.73027, -0.395998]
+  tvec: [-0.568466, 0.679942, 3.944365]
+  image_size: [1920, 1080]
+  note: fitted from desk-top rectangles
+checks:
+  reprojection_rms_px: 4.22
+  line_rms_px: 2.84
+  f_px: 1308.1
+  k1: -0.259
+  k2: 0.0
+  desk_top_depth_m: 0.387
+  camera_above_desk_m: 1.452
+  row_pitch_fit_m: 0.992
+  row_pitch_measured_m: 0.96
+  column_pitch_fit_m: [1.72, 1.66, 1.787, 1.573]
+  column_pitch_measured_m: [1.75, 1.79, 1.8, 1.75]
+  desk_height_m: 0.778
+  camera_above_floor_m: 2.23

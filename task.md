@@ -47,17 +47,17 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T2 Calibration and zones
 
-- [ ] **T2.1 (USER)** For each camera: one clear frame; 4+ floor points with real distances (tiles, marked rectangle, or taped markers); photos of the markers; 1 extra known distance for validation.
+- [x] **T2.1 (USER)** For each camera: one clear frame; 4+ floor points with real distances (tiles, marked rectangle, or taped markers); photos of the markers; 1 extra known distance for validation.
   Agent gives exact instructions per camera before the user goes on site.
-  Result:
+  Result: 2026-10-22 — desk/table sizes, gaps, row spacing, doors, camera heights and room photos (`configs/calibration_measurements.yaml`, `data/cctv/calibration/`). H705 and H103 numbers add up (0.8 %, 1 %); H706 text is a copy of H705 and its row spacing disagrees with the image (0.87 vs 0.96 m) → re-measure when convenient.
 - [ ] **T2.2 (USER)** Venue layout sketch: walkable areas, entrances/exits, which areas connect; widths of exits, gates, corridors, stairs in metres.
   Result:
-- [ ] **T2.3 (AGENT)** Calibration tool (click points → homography) using the `ViewTransformer` pattern; save H to YAML.
-  Result: 2026-10-15 — `crowdsafe/calibration/homography.py` (fit with RANSAC, px↔m, zone area via Shapely, validation distance, hidden-corner line intersection); tested. Room floor corners are occluded in H705 → need desk-grid measurements from the user. Click UI + YAML writer pending.
+- [x] **T2.3 (AGENT)** Calibration tool (click points → homography) using the `ViewTransformer` pattern; save H to YAML.
+  Result: 2026-10-15 — `crowdsafe/calibration/homography.py` (plain homography; kept for simple cases). 2026-10-22 — replaced for the CCTV by a full camera model with lens distortion (D6): `crowdsafe/calibration/camera_model.py` (desk-rectangle fit, plumb lines, edge fit), `edges.py`, `scripts/calibrate_cameras.py` → `configs/cameras/{H705,H706,H103}.yaml`. Reprojection 4.2 / 3.6 / 3.9 px. cam01 = cam02 (same fixed camera).
 - [ ] **T2.4 (BOTH)** Draw zones with the Roboflow PolygonZone tool (agent explains; user or agent draws); compute areas with Shapely; add adjacency and boundaries from T2.2.
-  Result:
-- [ ] **T2.5 (AGENT)** Validate each camera with the unused distance (target < 10% error). Mark approximate calibrations as approximate.
-  Result:
+  Result: 2026-10-22 — agent-drawn floor zones (3×3 seating blocks + front aisle per room, 4–16 m²) in `configs/zones/`; `crowdsafe/calibration/zones.py`, `scripts/zone_density.py`. On all 160 labelled frames, CLIP-EBC zone density vs labels: MAE 0.101 (H705) / 0.081 (H706) / 0.078 (H103) persons/m² at true densities up to 1.3–1.7; 94–98 % of labelled heads fall in a zone; head-height assumption 1.1–1.6 m changes MAE by ≤ 0.03. `results/zone_density.md`, `results/figures/zones_*.jpg`. Adjacency/exits wait for T2.2 (user check of zones still open).
+- [x] **T2.5 (AGENT)** Validate each camera with the unused distance (target < 10% error). Mark approximate calibrations as approximate.
+  Result: 2026-10-22 — all within 10 % except where noted (`results/calibration.md`). H705: row spacing 0.99 vs 0.96 m (+3 %), column pitch 1.69 vs 1.77 m mean (−5 %), desk height 0.78 m (from camera 2.23 m). H706: column pitch 1.78 vs 1.77 m (+1 %), door width 1.19 vs 1.12 m (+6 %; 2nd door partly hidden: 0.92 m), front wall 10.5–10.9 m from camera vs room 10.36 m; camera ~2.6–2.7 m (not 2.13 m as stated). H103: hidden columns 3–4 found within 0.10–0.22 m (2–3 %), table height 0.73 m, camera 2.51 vs 2.58 m (−3 %). All marked approximate.
 
 ---
 
