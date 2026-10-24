@@ -18,7 +18,7 @@ H706:
   desk_length_m: 1.00
   desk_depth_m: 0.91
   column_gaps_m: [0.75, 0.79, 0.80, 0.75]   # text identical to H705
-  row_spacing_m: 0.96          # text identical to H705; the calibration measures ~0.87–0.90 m here (see note)
+  row_spacing_m: 0.87          # from the calibration; user 2026-10-24: H706 layout differs slightly from H705, use 0.87
   rows_per_column: 11
   door_m: {width: 1.12, height: 2.20}   # user 2026-10-24: "around 2.2 something" (was 2.13)
   podium_m: {width: 0.61, height: 1.23}
@@ -31,7 +31,7 @@ H706:
     9 % over) were inconsistent too but were not flagged at the time — only H705 and H103 were summed.
     Row spacing: the text gives 0.96 m, but the fitted desk positions give 0.87 m and the free fit puts the front
     wall 10.5–10.9 m from the camera (room length 10.36 m); forcing 0.96 m would push it to 10.7–11.4 m. The
-    calibration therefore does not impose the row spacing. Please re-measure H706 front-leg-to-front-leg spacing.
+    calibration therefore does not impose the row spacing. User confirmed (2026-10-24) the layout differs: 0.87 m is used.
 H103:
   room_height_m: 2.78
   desk_length_m: 1.55          # one desk segment along the column (front -> back)
