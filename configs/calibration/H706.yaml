@@ -81,7 +81,7 @@ lines_rough:
   - [1428, 252]
 floor: {method: desk_height, desk_height_m: 0.8, source: 'same desk model as H705, where camera height 2.23 m gives 0.80 m'}
 doors:
-  height_m: 2.13
+  height_m: 2.2
   width_m: 1.12
   corners_px:
     left:

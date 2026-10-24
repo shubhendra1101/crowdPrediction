@@ -1,7 +1,7 @@
 room: H103
 cameras: [cam04]
 source: configs/calibration/H103.yaml
-generated: 2026-10-22 14:35
+generated: 2026-10-24 16:34
 approximate: true
 frame_note: world metres, Z up, floor at Z = 0; see source config for the axes
 head_height_m: 1.2

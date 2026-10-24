@@ -1,0 +1,28 @@
+bands:
+- 2.0
+- 4.0
+- 5.0
+alerts:
+  alert_level: High
+  raise_after_s: 10
+  clear_after_s: 30
+collapse_window_s: 30
+collapse_min_density: 1.0
+thresholds:
+  pressure: null
+  dir_entropy: 0.784
+  counterflow: null
+  collapse_density_slope: 0.0
+  collapse_speed_slope: 0.0
+  slow_speed: 0.2067
+  collapse_enabled: false
+tuning:
+  event_density: 4.0
+  ahead_s: 60
+  min_lift: 2.0
+event_levels:
+- 4.0
+- 5.0
+thresholds_note: tuned 2026-10-24 by scripts/eval_alerts.py on val split ['julich_bottleneck2',
+  'julich_entrance_corridor', 'julich_corridor_bi_2009'] (Jülich only; simulation
+  not yet available)

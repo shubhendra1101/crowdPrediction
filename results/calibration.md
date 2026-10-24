@@ -1,6 +1,6 @@
 # Camera calibration (T2.3–T2.5)
 
-Generated 2026-10-22 14:35 by `scripts/calibrate_cameras.py`. Full camera model per room (focal length, radial lens distortion k1/k2, position and orientation), floor at Z = 0. Inputs: `configs/calibration/<room>.yaml`; outputs: `configs/cameras/<room>.yaml`. All values approximate.
+Generated 2026-10-24 16:34 by `scripts/calibrate_cameras.py`. Full camera model per room (focal length, radial lens distortion k1/k2, position and orientation), floor at Z = 0. Inputs: `configs/calibration/<room>.yaml`; outputs: `configs/cameras/<room>.yaml`. All values approximate.
 
 ## H103 (cam04)
 
@@ -63,12 +63,12 @@ Generated 2026-10-22 14:35 by `scripts/calibrate_cameras.py`. Full camera model 
 | column_pitch_measured_m | [1.75, 1.79, 1.8, 1.75] |
 | desk_height_m | 0.8 |
 | camera_above_floor_m | 2.569 |
-| door_left_width_m | 1.19 |
-| door_left_camera_above_floor_m | 2.725 |
-| door_left_wall_distance_m | 10.895 |
-| door_right_width_m | 0.917 |
-| door_right_camera_above_floor_m | 2.713 |
-| door_right_wall_distance_m | 10.476 |
+| door_left_width_m | 1.229 |
+| door_left_camera_above_floor_m | 2.815 |
+| door_left_wall_distance_m | 11.253 |
+| door_right_width_m | 0.947 |
+| door_right_camera_above_floor_m | 2.802 |
+| door_right_wall_distance_m | 10.82 |
 | door_width_measured_m | 1.12 |
 
 ![H706](figures/calibration_H706.jpg)

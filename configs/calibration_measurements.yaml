@@ -20,7 +20,7 @@ H706:
   column_gaps_m: [0.75, 0.79, 0.80, 0.75]   # text identical to H705
   row_spacing_m: 0.96          # text identical to H705; the calibration measures ~0.87–0.90 m here (see note)
   rows_per_column: 11
-  door_m: {width: 1.12, height: 2.13}
+  door_m: {width: 1.12, height: 2.20}   # user 2026-10-24: "around 2.2 something" (was 2.13)
   podium_m: {width: 0.61, height: 1.23}
   camera_height_note: >
     user: "nearly the door height" (2.13 m). The calibration puts this camera 1.77 m above the desk tops, i.e.

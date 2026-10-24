@@ -133,14 +133,14 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ### T7 Risk engine and alerts
 
-- [ ] **T7.1 (AGENT)** Density bands on calibrated upper bound.
-  Result:
+- [x] **T7.1 (AGENT)** Density bands on calibrated upper bound.
+  Result: 2026-10-24 — \crowdsafe/risk/rules.py\ (RiskEngine: band of the worst conformal-calibrated 90 % bound over horizons, time-to-critical, reasons); tested.
 - [ ] **T7.2 (AGENT)** Precursor rules; tune thresholds on Jülich + sim; write them to camera YAMLs.
-  Result:
+  Result: 2026-10-24 — Jülich part done (sim pending, T5.4). Tuned on val only, kept only if precision ≥ 2× base rate: **crowd slowing** (speed ≤ 0.21 m/s at Medium density; P 0.47 vs base 0.145) and direction entropy ≥ 0.78 (P 0.29) kept; **pressure, counter-flow and flow collapse rejected** (do not precede filling-up at Jülich densities). Thresholds in \configs/risk.yaml\.
 - [ ] **T7.3 (AGENT, optional)** Isolation Forest anomaly detector.
   Result:
-- [ ] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
-  Result:
+- [x] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
+  Result: 2026-10-24 — \crowdsafe/risk/alerts.py\ (raise 10 s / clear 30 s), \scripts/eval_alerts.py\. Held-out Jülich (9 zone events ≥ 4 persons/m², small sample): alerted *before* the event — current density 0 %, persistence 22 %, physics 22 % (11.9 false alarms/zone-h), **Chronos-2 per-zone 56 % (median lead 19 s, mean 96 s; 1.8 false alarms/zone-h)**; precursors lift density-only to 33 % and persistence to 44 % but add nothing to Chronos-2. esults/alerts_julich.md\.
 - [ ] **T7.5 (USER)** Review default thresholds for the venue context (Indian crowd densities may justify different limits); confirm or adjust.
   Result:
 
