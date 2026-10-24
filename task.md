@@ -103,7 +103,8 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Result: 2026-09-30 — 144 runs / 8 experiments → `data/features/julich/`; 2 m zones; max density 9.0 (entrance_semicircle), 5.65 (entrance_corridor), 5.3 (corridor_uni_2013); 643 zone-s ≥ 5 p/m²; bottleneck1 has no 2 m zone (area 0.6 m wide); PedPy cross-check diff 0.0000 on 6/6. `results/julich_features_summary.md`.
 - [ ] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
   Result:
-- [ ] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
+- [x] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
+  Result: 2026-10-24 — user approved ("OK sims"). 16 scenarios in 4 layouts (H706-like classroom, corridor + bottleneck, hall with two exits, bidirectional corridor) incl. surges, exit closures, opposing flows; 10 exceed 5 persons/m² (max 8.0), classrooms stay < 4. `crowdsafe/simulation/scenarios.py`, `scripts/run_simulations.py`, `results/simulation_summary.md`. Sim alerts (5 held-out scenarios, 29 events ≥ 4): physics fill-rate upper bound alerts 86 % of events early (median 25 s, 1.6 false alarms/zone-h); current density and persistence 0 % early. Chronos-2 on sims pending (A100). `results/alerts_sim.md`, `results/forecast_sim.md`.
   Result:
 - [ ] **T5.5 (AGENT)** Split train/val/test by experiment, geometry and camera; write `results/dataset_summary.md`.
   Result: 2026-09-30 — Jülich split proposed in `configs/forecast_julich.yaml` (test: corridor_uni_2013 + entrance_semicircle; val: bottleneck2, entrance_corridor, corridor_bi_2009; train: corridor_uni_2009, train_platform) — awaiting user OK; sim/CCTV splits later.
@@ -136,7 +137,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [x] **T7.1 (AGENT)** Density bands on calibrated upper bound.
   Result: 2026-10-24 — `crowdsafe/risk/rules.py` (RiskEngine: band of the worst conformal-calibrated 90 % bound over horizons, time-to-critical, reasons); tested.
 - [ ] **T7.2 (AGENT)** Precursor rules; tune thresholds on Jülich + sim; write them to camera YAMLs.
-  Result: 2026-10-24 — Jülich part done (sim pending, T5.4). Tuned on val only, kept only if precision ≥ 2× base rate: **crowd slowing** (speed ≤ 0.21 m/s at Medium density; P 0.47 vs base 0.145) and direction entropy ≥ 0.78 (P 0.29) kept; **pressure, counter-flow and flow collapse rejected** (do not precede filling-up at Jülich densities). Thresholds in `configs/risk.yaml`.
+  Result: 2026-10-24 — Jülich part done (sim pending, T5.4). Tuned on val only, kept only if precision ≥ 2× base rate: **crowd slowing** (speed ≤ 0.21 m/s at Medium density; P 0.47 vs base 0.145) and direction entropy ≥ 0.78 (P 0.29) kept; **pressure, counter-flow and flow collapse rejected** (do not precede filling-up at Jülich densities). Thresholds in `configs/risk.yaml`. Re-tuned on pooled Jülich + sim val: **no precursor passes the 2× test** (crowd slowing does not transfer to simulated crowds) → all switched off in `configs/risk.yaml`; Jülich-only tuning result kept above for the paper.
 - [ ] **T7.3 (AGENT, optional)** Isolation Forest anomaly detector.
   Result:
 - [x] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
