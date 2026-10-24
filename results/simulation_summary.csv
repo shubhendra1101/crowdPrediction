@@ -1,0 +1,17 @@
+scenario,split,layout,agents,duration_s,zones,max_density,zone_s_ge4,zone_s_ge5,max_pressure,wall_s
+class_60,train,classroom,60,31.2,20,2.96,0,0,0.717,4.0
+class_90,val,classroom,90,37.2,20,2.96,0,0,0.73,8.3
+class_120_overfull,train,classroom,120,43.6,20,2.96,0,0,0.672,17.0
+class_90_one_door,train,classroom,90,58.0,20,3.85,0,0,0.716,18.2
+class_120_door_closes,test,classroom,120,62.2,20,3.58,0,0,0.672,23.4
+corr_1p5,train,corridor_bottleneck,180,144.2,20,1.35,0,0,0.184,2.2
+corr_2p5,val,corridor_bottleneck,300,201.6,20,5.6,199,57,0.404,14.8
+corr_3p5,train,corridor_bottleneck,420,270.6,20,6.25,905,526,0.356,41.8
+corr_surge,test,corridor_bottleneck,300,221.8,20,5.9,252,79,0.276,16.0
+corr_narrow_0p8,test,corridor_bottleneck,300,499.8,20,7.75,3299,2837,0.265,188.3
+hall_300,train,hall,300,88.8,80,6.7,250,92,1.263,10.5
+hall_500,train,hall,500,150.4,80,7.0,943,520,1.238,34.6
+hall_500_A_closes,val,hall,500,230.2,80,7.9,1957,1229,1.522,69.8
+hall_700_A_closes,test,hall,700,333.6,80,8.0,4293,3142,1.451,164.3
+bidir_1p0,val,bidirectional,240,138.6,20,1.5,0,0,1.335,3.1
+bidir_2p0,test,bidirectional,480,256.6,20,6.5,678,417,1.31,24.0

@@ -10,11 +10,11 @@ collapse_window_s: 30
 collapse_min_density: 1.0
 thresholds:
   pressure: null
-  dir_entropy: 0.784
+  dir_entropy: null
   counterflow: null
   collapse_density_slope: 0.0
   collapse_speed_slope: 0.0
-  slow_speed: 0.2067
+  slow_speed: null
   collapse_enabled: false
 tuning:
   event_density: 4.0
@@ -23,6 +23,5 @@ tuning:
 event_levels:
 - 4.0
 - 5.0
-thresholds_note: tuned 2026-10-24 by scripts/eval_alerts.py on val split ['julich_bottleneck2',
-  'julich_entrance_corridor', 'julich_corridor_bi_2009'] (Jülich only; simulation
-  not yet available)
+thresholds_note: tuned 2026-10-24 by scripts/eval_alerts.py on the pooled val splits
+  of configs\forecast_julich.yaml, configs\forecast_sim.yaml

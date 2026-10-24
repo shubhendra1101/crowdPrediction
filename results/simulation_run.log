@@ -1,0 +1,17 @@
+{'scenario': 'class_60', 'split': 'train', 'layout': 'classroom', 'agents': 60, 'duration_s': 31.2, 'zones': 20, 'max_density': 2.96, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.717, 'wall_s': 4.0}
+{'scenario': 'class_90', 'split': 'val', 'layout': 'classroom', 'agents': 90, 'duration_s': 37.2, 'zones': 20, 'max_density': 2.96, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.73, 'wall_s': 8.3}
+{'scenario': 'class_120_overfull', 'split': 'train', 'layout': 'classroom', 'agents': 120, 'duration_s': 43.6, 'zones': 20, 'max_density': 2.96, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.672, 'wall_s': 17.0}
+{'scenario': 'class_90_one_door', 'split': 'train', 'layout': 'classroom', 'agents': 90, 'duration_s': 58.0, 'zones': 20, 'max_density': 3.85, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.716, 'wall_s': 18.2}
+{'scenario': 'class_120_door_closes', 'split': 'test', 'layout': 'classroom', 'agents': 120, 'duration_s': 62.2, 'zones': 20, 'max_density': 3.58, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.672, 'wall_s': 23.4}
+{'scenario': 'corr_1p5', 'split': 'train', 'layout': 'corridor_bottleneck', 'agents': 180, 'duration_s': 144.2, 'zones': 20, 'max_density': 1.35, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 0.184, 'wall_s': 2.2}
+{'scenario': 'corr_2p5', 'split': 'val', 'layout': 'corridor_bottleneck', 'agents': 300, 'duration_s': 201.6, 'zones': 20, 'max_density': 5.6, 'zone_s_ge4': 199, 'zone_s_ge5': 57, 'max_pressure': 0.404, 'wall_s': 14.8}
+{'scenario': 'corr_3p5', 'split': 'train', 'layout': 'corridor_bottleneck', 'agents': 420, 'duration_s': 270.6, 'zones': 20, 'max_density': 6.25, 'zone_s_ge4': 905, 'zone_s_ge5': 526, 'max_pressure': 0.356, 'wall_s': 41.8}
+{'scenario': 'corr_surge', 'split': 'test', 'layout': 'corridor_bottleneck', 'agents': 300, 'duration_s': 221.8, 'zones': 20, 'max_density': 5.9, 'zone_s_ge4': 252, 'zone_s_ge5': 79, 'max_pressure': 0.276, 'wall_s': 16.0}
+{'scenario': 'corr_narrow_0p8', 'split': 'test', 'layout': 'corridor_bottleneck', 'agents': 300, 'duration_s': 499.8, 'zones': 20, 'max_density': 7.75, 'zone_s_ge4': 3299, 'zone_s_ge5': 2837, 'max_pressure': 0.265, 'wall_s': 188.3}
+{'scenario': 'hall_300', 'split': 'train', 'layout': 'hall', 'agents': 300, 'duration_s': 88.8, 'zones': 80, 'max_density': 6.7, 'zone_s_ge4': 250, 'zone_s_ge5': 92, 'max_pressure': 1.263, 'wall_s': 10.5}
+{'scenario': 'hall_500', 'split': 'train', 'layout': 'hall', 'agents': 500, 'duration_s': 150.4, 'zones': 80, 'max_density': 7.0, 'zone_s_ge4': 943, 'zone_s_ge5': 520, 'max_pressure': 1.238, 'wall_s': 34.6}
+{'scenario': 'hall_500_A_closes', 'split': 'val', 'layout': 'hall', 'agents': 500, 'duration_s': 230.2, 'zones': 80, 'max_density': 7.9, 'zone_s_ge4': 1957, 'zone_s_ge5': 1229, 'max_pressure': 1.522, 'wall_s': 69.8}
+{'scenario': 'hall_700_A_closes', 'split': 'test', 'layout': 'hall', 'agents': 700, 'duration_s': 333.6, 'zones': 80, 'max_density': 8.0, 'zone_s_ge4': 4293, 'zone_s_ge5': 3142, 'max_pressure': 1.451, 'wall_s': 164.3}
+{'scenario': 'bidir_1p0', 'split': 'val', 'layout': 'bidirectional', 'agents': 240, 'duration_s': 138.6, 'zones': 20, 'max_density': 1.5, 'zone_s_ge4': 0, 'zone_s_ge5': 0, 'max_pressure': 1.335, 'wall_s': 3.1}
+{'scenario': 'bidir_2p0', 'split': 'test', 'layout': 'bidirectional', 'agents': 480, 'duration_s': 256.6, 'zones': 20, 'max_density': 6.5, 'zone_s_ge4': 678, 'zone_s_ge5': 417, 'max_pressure': 1.31, 'wall_s': 24.0}
+EXIT 0

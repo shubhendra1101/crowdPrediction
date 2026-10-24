@@ -26,7 +26,13 @@ from crowdsafe.forecasting.evaluate import forecast_points, score  # noqa: E402
 def load_split(cfg: dict, split: str, root: Path | None = None) -> pd.DataFrame:
     """Feature rows of every run in the datasets assigned to ``split``."""
     root = Path(root or cfg["features_root"])
-    return pd.concat([read_features(root / ds) for ds in cfg["split"][split] if (root / ds).exists()], ignore_index=True)
+    parts = []
+    for ds in cfg["split"][split]:          # a dataset folder (Jülich) or a single run file by name (simulation)
+        if (root / ds).exists():
+            parts.append(read_features(root / ds))
+        elif files := sorted(root.rglob(f"{ds}.parquet")):
+            parts.append(read_features(files))
+    return pd.concat(parts, ignore_index=True)
 
 
 def build_models(cfg: dict, names: list[str], device: str) -> list:

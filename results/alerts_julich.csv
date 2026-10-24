@@ -1,21 +1,21 @@
 variant,event_density,events,alerted_before_%,late_%,missed_%,median_lead_s,mean_lead_s,alerts,false_alarms,false_alarms_per_zone_hour,zone_hours
 current density only,4.0,9,0.0,22.2,77.8,,,12,0,0.0,4.8
 current density only,5.0,2,50.0,50.0,0.0,2.0,2.0,12,3,0.62,4.8
-current density + precursors,4.0,9,33.3,11.1,55.6,207.0,145.7,27,12,2.5,4.8
-current density + precursors,5.0,2,50.0,50.0,0.0,2.0,2.0,27,19,3.96,4.8
+current density + precursors,4.0,9,0.0,22.2,77.8,,,12,0,0.0,4.8
+current density + precursors,5.0,2,50.0,50.0,0.0,2.0,2.0,12,3,0.62,4.8
 persistence upper bound,4.0,9,22.2,44.4,33.3,58.5,58.5,17,0,0.0,4.47
 persistence upper bound,5.0,2,50.0,50.0,0.0,33.0,33.0,17,8,1.79,4.47
-persistence upper bound + precursors,4.0,9,44.4,33.3,22.2,101.0,108.5,27,12,2.68,4.47
-persistence upper bound + precursors,5.0,2,50.0,50.0,0.0,33.0,33.0,27,19,4.25,4.47
+persistence upper bound + precursors,4.0,9,22.2,44.4,33.3,58.5,58.5,17,0,0.0,4.47
+persistence upper bound + precursors,5.0,2,50.0,50.0,0.0,33.0,33.0,17,8,1.79,4.47
 physics upper bound,4.0,9,22.2,55.6,22.2,196.0,196.0,67,53,11.85,4.47
 physics upper bound,5.0,2,50.0,50.0,0.0,48.0,48.0,67,59,13.19,4.47
-physics upper bound + precursors,4.0,9,33.3,44.4,22.2,183.0,138.3,71,56,12.52,4.47
-physics upper bound + precursors,5.0,2,50.0,50.0,0.0,48.0,48.0,71,63,14.08,4.47
+physics upper bound + precursors,4.0,9,22.2,55.6,22.2,196.0,196.0,67,53,11.85,4.47
+physics upper bound + precursors,5.0,2,50.0,50.0,0.0,48.0,48.0,67,59,13.19,4.47
 chronos2_per_zone upper bound,4.0,9,55.6,33.3,11.1,19.0,95.6,26,8,1.79,4.47
 chronos2_per_zone upper bound,5.0,2,50.0,50.0,0.0,43.0,43.0,26,18,4.02,4.47
-chronos2_per_zone upper bound + precursors,4.0,9,55.6,33.3,11.1,19.0,95.6,28,13,2.91,4.47
-chronos2_per_zone upper bound + precursors,5.0,2,50.0,50.0,0.0,43.0,43.0,28,20,4.47,4.47
+chronos2_per_zone upper bound + precursors,4.0,9,55.6,33.3,11.1,19.0,95.6,26,8,1.79,4.47
+chronos2_per_zone upper bound + precursors,5.0,2,50.0,50.0,0.0,43.0,43.0,26,18,4.02,4.47
 chronos2_joint upper bound,4.0,9,44.4,33.3,22.2,116.0,116.0,20,2,0.45,4.47
 chronos2_joint upper bound,5.0,2,50.0,50.0,0.0,43.0,43.0,20,12,2.68,4.47
-chronos2_joint upper bound + precursors,4.0,9,44.4,33.3,22.2,116.0,116.0,27,12,2.68,4.47
-chronos2_joint upper bound + precursors,5.0,2,50.0,50.0,0.0,43.0,43.0,27,19,4.25,4.47
+chronos2_joint upper bound + precursors,4.0,9,44.4,33.3,22.2,116.0,116.0,20,2,0.45,4.47
+chronos2_joint upper bound + precursors,5.0,2,50.0,50.0,0.0,43.0,43.0,20,12,2.68,4.47

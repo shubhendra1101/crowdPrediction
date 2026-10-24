@@ -1,0 +1,16 @@
+# Forecast + alert evaluation on JuPedSim scenarios (T5.4 / T6.4 / T7, simulation part). Synthetic data.
+features_root: data/features/sim
+seed: 42
+# Same scenario split as configs/simulation.yaml (never split within a run).
+split:
+  train: [class_60, class_120_overfull, class_90_one_door, corr_1p5, corr_3p5, hall_300, hall_500]
+  val:   [class_90, corr_2p5, hall_500_A_closes, bidir_1p0]
+  test:  [class_120_door_closes, corr_surge, corr_narrow_0p8, hall_700_A_closes, bidir_2p0]
+context_s: 30
+horizons_s: [10, 30, 60, 120]
+origin_stride_s: 5
+critical_density: 5.0
+models:
+  persistence: {}
+  physics:
+    flux_window_s: 10

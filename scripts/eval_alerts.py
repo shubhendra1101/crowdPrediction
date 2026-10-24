@@ -177,17 +177,25 @@ def main() -> int:
     ap.add_argument("--risk", type=Path, default=Path("configs/risk.yaml"))
     ap.add_argument("--points", type=Path, default=Path("weights/crowdsafe_nb04_report/forecast_julich_points.parquet"))
     ap.add_argument("--out", type=Path, default=Path("results/alerts_julich.md"))
+    ap.add_argument("--tune-configs", type=Path, nargs="*", default=[Path("configs/forecast_julich.yaml"), Path("configs/forecast_sim.yaml")],
+                    help="val splits of these configs are pooled for threshold tuning")
+    ap.add_argument("--no-tune", action="store_true", help="use the thresholds already in --risk")
     a = ap.parse_args()
     cfg = yaml.safe_load(a.config.read_text(encoding="utf-8"))
     risk = yaml.safe_load(a.risk.read_text(encoding="utf-8"))
     al = risk["alerts"]
-    val, test = load_split(cfg, "val"), load_split(cfg, "test")
+    test = load_split(cfg, "test")
+    tune_cfgs = [yaml.safe_load(p.read_text(encoding="utf-8")) for p in a.tune_configs]
+    val = pd.concat([load_split(c, "val") for c in tune_cfgs], ignore_index=True)
     th, tune_tab = tune(val, risk["tuning"]["event_density"], risk["tuning"]["ahead_s"], risk["collapse_window_s"],
                         risk["collapse_min_density"], risk["tuning"]["min_lift"])
-    risk["thresholds"].update(th)
-    risk["thresholds_note"] = (f"tuned {time.strftime('%Y-%m-%d')} by scripts/eval_alerts.py on val split "
-                               f"{cfg['split']['val']} (Jülich only; simulation not yet available)")
-    a.risk.write_text(yaml.safe_dump(risk, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    if a.no_tune:
+        th = {k: v for k, v in risk["thresholds"].items()}
+    else:
+        risk["thresholds"].update(th)
+        risk["thresholds_note"] = (f"tuned {time.strftime('%Y-%m-%d')} by scripts/eval_alerts.py on the pooled val splits of "
+                                   + ", ".join(str(p) for p in a.tune_configs))
+        a.risk.write_text(yaml.safe_dump(risk, sort_keys=False, allow_unicode=True), encoding="utf-8")
     pts = pd.read_parquet(a.points)
     pts = pts[pts["split"] == "test"]
     kw = dict(bands=tuple(risk["bands"]), thresholds=risk["thresholds"], collapse_window_s=risk["collapse_window_s"],
@@ -210,7 +218,7 @@ def main() -> int:
     a.out.parent.mkdir(parents=True, exist_ok=True)
     res.to_csv(a.out.with_suffix(".csv"), index=False)
     pd.concat(timelines, ignore_index=True).to_csv(a.out.with_name(a.out.stem + "_timelines.csv"), index=False)
-    md = ["# Alerts on held-out Jülich experiments (T7.1, T7.2, T7.4)", "",
+    md = [f"# Alerts on held-out runs: {a.config.stem} (T7.1, T7.2, T7.4)", "",
           f"Generated {time.strftime('%Y-%m-%d %H:%M')} by `scripts/eval_alerts.py`. Test runs: {cfg['split']['test']} "
           f"({test['camera_id'].nunique()} runs, {test.groupby('camera_id')['zone_id'].nunique().sum()} zones). "
           f"Decision every {cfg['origin_stride_s']} s; alert = level ≥ High held {al['raise_after_s']} s (cleared after "
@@ -219,7 +227,7 @@ def main() -> int:
           "- `alerted_before_%`: events with an alert raised before the density got there; `late_%`: alert within 30 s after; "
           "`missed_%`: neither.", "- `lead`: seconds between the alert and the event (alerts raised before it).",
           "- `false_alarms`: alerts with no event within 120 s after raising (or 30 s before).", "",
-          "## Precursor thresholds (tuned on val only)", "",
+          f"## Precursor thresholds (tuned on pooled val splits: {', '.join(p.stem for p in a.tune_configs)})", "",
           f"Target: zone reaches {risk['tuning']['event_density']} persons/m² within {risk['tuning']['ahead_s']} s, among zone-seconds "
           f"currently at 2–4 persons/m². A precursor is kept only if its precision is ≥ {risk['tuning']['min_lift']}× the base rate.", "",
           "| Precursor | Direction | Threshold | F1 | Precision | Recall | Base rate | n |", "| --- | --- | --- | --- | --- | --- | --- | --- |"]

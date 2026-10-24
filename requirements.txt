@@ -38,3 +38,4 @@ pytest>=8.0
 
 # CLIP-EBC: install its own requirements from its repo (T3.3)
 certifi
+jupedsim==1.4.2         # T5.4 simulations (CPU)

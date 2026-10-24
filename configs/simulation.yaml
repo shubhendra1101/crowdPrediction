@@ -1,0 +1,36 @@
+# JuPedSim scenarios (T5.4). Synthetic data — reported separately from real data.
+# Layouts in crowdsafe/simulation/scenarios.py. Rates in persons/s; times in s.
+seed: 42
+dt: 0.01
+record_hz: 5
+cell_m: 2.0
+out_traj: data/sim/trajectories
+out_features: data/features/sim
+
+scenarios:
+  # H706-like classroom (8.03 x 10.36 m, 5 desk columns, rows 0.87 m, two 1.12 m front doors)
+  class_60:              {layout: classroom, initial: 60, max_time_s: 300}
+  class_90:              {layout: classroom, initial: 90, max_time_s: 300}
+  class_120_overfull:    {layout: classroom, initial: 120, max_time_s: 300}
+  class_90_one_door:     {layout: classroom, initial: 90, close: {door1: 0}, max_time_s: 300}
+  class_120_door_closes: {layout: classroom, initial: 120, close: {door1: 10}, max_time_s: 300}
+  # 4 x 20 m corridor ending in a bottleneck (default 1.2 m)
+  corr_1p5:              {layout: corridor_bottleneck, arrivals: {entry: [[0, 120, 1.5, exit]]}, max_time_s: 400}
+  corr_2p5:              {layout: corridor_bottleneck, arrivals: {entry: [[0, 120, 2.5, exit]]}, max_time_s: 400}
+  corr_3p5:              {layout: corridor_bottleneck, arrivals: {entry: [[0, 120, 3.5, exit]]}, max_time_s: 400}
+  corr_surge:            {layout: corridor_bottleneck, arrivals: {entry: [[0, 60, 1.0, exit], [60, 120, 4.0, exit]]}, max_time_s: 400}
+  corr_narrow_0p8:       {layout: corridor_bottleneck, layout_args: {gap: 0.8}, arrivals: {entry: [[0, 120, 2.5, exit]]}, max_time_s: 500}
+  # 20 x 15 m hall, exit A 2.0 m (east), exit B 1.2 m (north); people take the nearest open exit
+  hall_300:              {layout: hall, initial: 300, max_time_s: 400}
+  hall_500:              {layout: hall, initial: 500, max_time_s: 500}
+  hall_500_A_closes:     {layout: hall, initial: 500, close: {A: 20}, max_time_s: 600}
+  hall_700_A_closes:     {layout: hall, initial: 700, close: {A: 15}, max_time_s: 700}
+  # 4 x 20 m corridor, two opposing streams
+  bidir_1p0:             {layout: bidirectional, arrivals: {south_end: [[0, 120, 1.0, north]], north_end: [[0, 120, 1.0, south]]}, max_time_s: 400}
+  bidir_2p0:             {layout: bidirectional, arrivals: {south_end: [[0, 120, 2.0, north]], north_end: [[0, 120, 2.0, south]]}, max_time_s: 400}
+
+# Split by scenario (T5.5): tuning (val) and evaluation (test) never share a scenario.
+split:
+  train: [class_60, class_120_overfull, class_90_one_door, corr_1p5, corr_3p5, hall_300, hall_500]
+  val:   [class_90, corr_2p5, hall_500_A_closes, bidir_1p0]
+  test:  [class_120_door_closes, corr_surge, corr_narrow_0p8, hall_700_A_closes, bidir_2p0]
