@@ -1,0 +1,16 @@
+# Forecasts on the CCTV zone features (T6.4, CCTV part; produced by notebook 05).
+# Real classroom densities stay well below 2 persons/m², so this checks calibration of the upper bound on
+# real data and feeds the alert replay/demo — not dangerous-event lead time.
+features_root: data/features/cctv
+seed: 42
+split:
+  val:  [cam01, cam03]        # long lecture (H705) + H706: conformal calibration
+  test: [cam02, cam04]        # H705 lecture -> mass exit -> empty; H103 lab filling up
+context_s: 30
+horizons_s: [10, 30, 60]
+origin_stride_s: 5
+critical_density: 5.0
+models:
+  persistence: {}
+  physics:
+    flux_window_s: 10          # not usable on CCTV yet (inflow/outflow not measured)
