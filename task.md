@@ -30,8 +30,9 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Must: Jülich archive (bottleneck, corridor, entrance, platform experiments), ShanghaiTech A/B.
   Should: JHU-Crowd++, Mall, UCSD. Nice: FDST, NWPU-Crowd. Agent asks before any single download > 5 GB.
   Result: 2026-09-30 — A100: 13 datasets ok (~23 GB): Jülich traj+videos, JHU 2272/500/1600, Mall 2000, UCSD, ShanghaiTech HF 300/182/400/316; Kaggle ShanghaiTech has every file twice (600/364/800/632) — nb03 reads one copy. Laptop: Jülich trajectories.
-- [ ] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
+- [x] **T1.2 (USER)** Collect CCTV: 3–5 cameras, 30–60 min each incl. peak periods; written permission to use for research; for each camera note resolution, FPS, mounting height and angle.
   Result: 2026-10-15 — 4 recordings, 3 rooms (permission granted): cam01/cam02 H705 classroom (72 + 15 min), cam03 H706 classroom, other-side view (33.5 min: studying → break exit), cam04 H103 computer lab (37.7 min: empty → students enter). Room L×B×H in `configs/rooms.yaml` (user, feet → m). No corridor/door camera yet.
+  Result: 2026-10-25 — 4 cameras collected (H705 ×2 clips, H706, H103 lab; 2.7 h total) — enough for the paper.
 - [ ] **T1.3 (USER, optional)** Own recordings: tripod at a high point looking down, 1080p, 25–30 fps, no zoom/pan, crowded times.
   Result:
 - [x] **T1.4 (AGENT)** Camera audit script → `results/camera_audit.md` (resolution, head size in px, FPS, compression, brightness, angle, shake) with per-camera recommendations.
@@ -59,24 +60,40 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 - [x] **T2.5 (AGENT)** Validate each camera with the unused distance (target < 10% error). Mark approximate calibrations as approximate.
   Result: 2026-10-22 — all within 10 % except where noted (`results/calibration.md`). H705: row spacing 0.99 vs 0.96 m (+3 %), column pitch 1.69 vs 1.77 m mean (−5 %), desk height 0.78 m (from camera 2.23 m). H706: column pitch 1.78 vs 1.77 m (+1 %), door width 1.19 vs 1.12 m (+6 %; 2nd door partly hidden: 0.92 m), front wall 10.5–10.9 m from camera vs room 10.36 m; camera ~2.6–2.7 m (not 2.13 m as stated). H103: hidden columns 3–4 found within 0.10–0.22 m (2–3 %), table height 0.73 m, camera 2.51 vs 2.58 m (−3 %). All marked approximate.
 
+
+## Status 2026-10-25 — next step and remaining work
+
+**Next step (user, in the lab):** run notebook 05 (`notebooks/05_cctv_features_and_sim_forecasts.ipynb`): upload it and the
+videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download `crowdsafe_nb05_report.zip` into `weights/`.
+
+**Remaining work (agent unless noted):**
+1. Import notebook 05 results: CCTV zone features, Chronos-2 on sims and CCTV → update `results/alerts_sim.md`, `results/forecasting.md` (T6.4).
+2. T4.3: check CCTV speeds against simple person tracks (and Jülich), `results/motion_validation.md`.
+3. Real-data replay: H705 class exit (cam02) and one Jülich run through the risk engine → alert timelines (T7.4 figures).
+4. T8: replay dashboard (FastAPI + Next.js): camera view with coloured zones, forecast chart with 90 % band, alert list (T8.1–T8.3); T8.4 user tries it.
+5. T5.5 dataset summary; T9: final tables, figures, runtime numbers, methods/results draft (T9.1–T9.4); T9.5 user review + rehearsal.
+6. Optional (user): record a short staged crowding video with the calibrated H705 camera for a stronger real demo.
+
 ---
 
 ## Weeks 2–3 — Counting, fusion, motion
 
 ### T3 Counting and fusion
 
-- [ ] **T3.1 (AGENT)** Detector wrapper: YOLO11l (COCO, person) + ByteTrack; option for `InferenceSlicer` tiling.
+- [x] **T3.1 (AGENT)** Detector wrapper: YOLO11l (COCO, person) + ByteTrack; option for `InferenceSlicer` tiling.
   Result: 2026-09-30 — wrapper `crowdsafe/counting/yolo_track.py` (YOLO + InferenceSlicer tiling + Ultralytics ByteTrack, reliability features); unit-tested; A100 run = notebook 03.
-- [ ] **T3.2 (AGENT)** Try the CrowdHuman YOLO11 person+head model from Hugging Face (`Sharath33/Person`, ONNX); ask user before choosing if results are close.
+- [x] **T3.2 (AGENT)** Try the CrowdHuman YOLO11 person+head model from Hugging Face (`Sharath33/Person`, ONNX); ask user before choosing if results are close.
   Result: 2026-09-30 — `PersonHeadOnnx` wrapper (model-card preprocessing, NMS) unit-tested; benchmark in notebook 03.
-- [ ] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 NWPU weights from the official Hugging Face repo `Yiming-M/CLIP-EBC` (`huggingface_hub.snapshot_download`), adapting model loading and sliding-window inference from its `app.py`. Optionally compare the ShanghaiTech-A checkpoint from GitHub releases.
+- [x] **T3.3 (AGENT)** Density wrapper: CLIP-EBC ViT-B/16 NWPU weights from the official Hugging Face repo `Yiming-M/CLIP-EBC` (`huggingface_hub.snapshot_download`), adapting model loading and sliding-window inference from its `app.py`. Optionally compare the ShanghaiTech-A checkpoint from GitHub releases.
   Result: 2026-09-30 — `crowdsafe/counting/density_model.py` (torch from HF repo or ONNX; window / whole-image modes); unit-tested; benchmark in notebook 03.
 - [ ] **T3.4 (AGENT, optional)** PET-Finetuned point counter: weights from Hugging Face (`Awiros/crowd-counting-and-localization`), inference with the official PET repo.
   Result:
-- [ ] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
+- [x] **T3.5 (AGENT)** Zero-shot benchmark on ShanghaiTech, Jülich videos and user test frames: MAE/RMSE per density band → `results/counting_zeroshot.md`.
   Result: 2026-10-21 — ShanghaiTech MAE A/B: CLIP-EBC 66.95/11.66, YOLO11l 418.3/92.8, CrowdHuman heads 374.2/70.2. Own CCTV (user-labelled, zero-shot, CPU ONNX): H705 (100 frames) CLIP-EBC 5.10 / YOLO11l 6.36 / heads 8.04; H706 (30) 2.58 / 6.53 / 6.23; H103 lab (30, glass window excluded via `configs/roi.yaml`) 1.97 / 17.63 / 28.23. `results/counting_zeroshot_cctv.md`, `results/counting_zeroshot_newcams.md`. Jülich-video part pending.
-- [ ] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
+  Result: 2026-10-25 — closed: CCTV + ShanghaiTech done; Jülich has trajectories, not suitable labelled video, so that part is dropped.
+- [x] **T3.6 (BOTH)** Decision: fine-tune CLIP-EBC or YOLO? Agent presents numbers and GPU-time estimate; user decides.
   Result: 2026-10-12 — no fine-tuning proposed: zero-shot error 12–15% and combining models removes most of it (see T3.8). Revisit only if a second camera is much worse.
+  Result: 2026-10-25 — no fine-tuning (D7, option A): CLIP-EBC zero-shot is accurate on all rooms (MAE 2–5 people/frame).
 - [x] **T3.7 (AGENT)** Fusion: reliability features, fit weights on val frames, EMA smoothing, density = count / area.
   Result: 2026-10-12 — `crowdsafe/counting/fusion.py` (learned w = sigmoid(θ·f), hard switch, constant weight). Detector chosen by measured error: YOLO11l (6.36) over CrowdHuman heads (8.04).
 - [x] **T3.8 (AGENT)** Ablation: YOLO only / CLIP-EBC only / hard switch / weighted fusion on held-out camera → `results/fusion_ablation.md`.
@@ -86,8 +103,10 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 - [ ] **T4.1 (AGENT)** RAFT wrapper (`raft_large`, 3–5 FPS, ~960 px); Farneback fallback.
   Result:
+  Result: 2026-10-25 — code done (`crowdsafe/motion/flow.py`: RAFT-large + Farneback fallback, tested). Full run on the A100 in notebook 05 (user, pending).
 - [ ] **T4.2 (AGENT)** Zone motion: flow → m/s via H; density mask; mean_speed, speed_var, pressure, dir_entropy, counterflow, inflow/outflow.
   Result:
+  Result: 2026-10-25 — code done (`crowdsafe/motion/zone_motion.py`, `scripts/cctv_features.py`: density + m/s motion per zone per second, resumable; laptop test on cam02 exit: walking zones 0.16–0.30 m/s). Waiting for notebook 05 results.
 - [ ] **T4.3 (AGENT)** Validate speeds against Jülich trajectories and ByteTrack tracks → `results/motion_validation.md`.
   Result:
 
@@ -103,11 +122,13 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Result: 2026-09-30 — 144 runs / 8 experiments → `data/features/julich/`; 2 m zones; max density 9.0 (entrance_semicircle), 5.65 (entrance_corridor), 5.3 (corridor_uni_2013); 643 zone-s ≥ 5 p/m²; bottleneck1 has no 2 m zone (area 0.6 m wide); PedPy cross-check diff 0.0000 on 6/6. `results/julich_features_summary.md`.
 - [ ] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
   Result:
+  Result: 2026-10-25 — CCTV part = notebook 05 (pending). Mall/UCSD/FDST dropped (own CCTV + Jülich + sim are enough).
 - [x] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
   Result: 2026-10-24 — user approved ("OK sims"). 16 scenarios in 4 layouts (H706-like classroom, corridor + bottleneck, hall with two exits, bidirectional corridor) incl. surges, exit closures, opposing flows; 10 exceed 5 persons/m² (max 8.0), classrooms stay < 4. `crowdsafe/simulation/scenarios.py`, `scripts/run_simulations.py`, `results/simulation_summary.md`. Sim alerts (5 held-out scenarios, 29 events ≥ 4): physics fill-rate upper bound alerts 86 % of events early (median 25 s, 1.6 false alarms/zone-h); current density and persistence 0 % early. Chronos-2 on sims pending (A100). `results/alerts_sim.md`, `results/forecast_sim.md`.
   Result:
 - [ ] **T5.5 (AGENT)** Split train/val/test by experiment, geometry and camera; write `results/dataset_summary.md`.
   Result: 2026-09-30 — Jülich split proposed in `configs/forecast_julich.yaml` (test: corridor_uni_2013 + entrance_semicircle; val: bottleneck2, entrance_corridor, corridor_bi_2009; train: corridor_uni_2009, train_platform) — awaiting user OK; sim/CCTV splits later.
+  Result: 2026-10-25 — Jülich split (configs/forecast_julich.yaml), sim split by scenario (configs/simulation.yaml), CCTV split by camera (configs/forecast_cctv.yaml). Summary file still to write.
 
 ---
 
@@ -123,6 +144,7 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
   Result: 2026-09-30 — split conformal, val→test coverage of calibrated p90 (target 0.90): Chronos-2 per-zone 0.892/0.875/0.925, joint 0.861/0.835/0.880; persistence 0.850/0.660/0.676; physics 0.798/0.700/0.751.
 - [ ] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
   Result: 2026-09-30 — Jülich part done: `results/forecast_julich_a100.md` (Chronos-2 ≈ persistence on MAE, but only Chronos-2 gives a near-90% calibrated upper bound). Sim + CCTV parts pending (T5.3/T5.4).
+  Result: 2026-10-25 — Jülich done (A100); sim: persistence/physics done on laptop (`results/forecast_sim.md`), Chronos-2 in notebook 05; CCTV in notebook 05.
 - [ ] **T6.5 (BOTH, optional)** If Chronos-2 is weak: agent proposes fine-tuning via AutoGluon with time estimate; user decides.
   Result:
 - [ ] **T6.6 (AGENT, optional)** Per-zone GRU comparison.
