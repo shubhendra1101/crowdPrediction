@@ -100,6 +100,24 @@ Files: `results/calibration.md`, `results/figures/calibration_*.jpg`.
 
 Files: `results/simulation_summary.md`, `results/figures/sim_*.png`; data in `data/sim/csv/` (Excel).
 
+## 6. Live speed (latency) on the A100
+cam02 was played at real speed as if it were a live camera, through the full pipeline (same models and settings).
+Latency = camera frame arrives → zone density, risk level and alarms ready (dashboard/network not included). The first 3 warm-up cycles are excluded.
+
+| Run | Median latency | 95 % under | Counting (CLIP-EBC) | Movement (RAFT) | Forecast | On time (1 s budget) | GPU memory |
+|---|---|---|---|---|---|---|---|
+| **Live, Chronos-2** (10 min) | **0.49 s** | 1.6 s | 159 ms | 103 ms | 54 ms (every 5 s) | 94 % | 2.0 GB |
+| Live, persistence (5 min) | 0.39 s | 1.5 s | 103 ms | 61 ms | 6 ms | 94 % | 1.5 GB |
+| As fast as possible (15 min of video) | 0.36 s | 0.45 s | 105 ms | 58 ms | 40 ms | 99.8 % | 2.0 GB |
+
+- **Throughput:** 908 s of video processed in 196 s, about **4.6× real time**. By extrapolation, one A100 could serve about 4 cameras (not tested).
+- The 0.2 s wait for the second frame of each motion pair is part of the latency.
+- Design delays come on top: a forecast every 5 s, and an alarm must hold 10 s.
+- **Caveat:** the GPU is shared, so step times varied between runs (counting 103–159 ms). Rare spikes reached up to 7 s, mostly from database writes.
+- The laptop CPU cannot run live: about 19 s per second of video.
+
+**Files:** `results/latency_live_chronos.md`, `latency_live_persistence.md`, `latency_throughput.md`.
+
 ## Limitations (say these openly)
 - Calibration is approximate (about ±5 %).
 - Real dangerous events are few (9 in the Jülich test set), so those percentages are rough.

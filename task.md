@@ -195,7 +195,8 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
 
 - [ ] **T9.1 (AGENT)** Fill all metric tables (`architecture.md` §6) on held-out data.
   Result:
-- [ ] **T9.2 (AGENT)** Runtime: latency, FPS per camera, GPU memory.
+- [x] **T9.2 (AGENT)** Runtime: latency, FPS per camera, GPU memory.
+  Result: 2026-10-26 — A100 (notebook 06, cam02 at real speed): live Chronos-2 median latency 0.49 s (p95 1.6 s), density 159 ms, RAFT 103 ms, Chronos-2 54 ms every 5 s, 94 % of 1-s cycles on time, GPU 2.0 GB; max throughput 4.6x real time. esults/latency_*.md\.
   Result: 2026-10-26 — live pipeline built: \crowdsafe/datasets/live.py\ (real-speed reader, drops frames when slow), \scripts/live_pipeline.py\ (same models/settings, per-stage timing, SQLite log, forecast every 5 s, risk + alerts). Laptop CPU test (cam02, ONNX CLIP-EBC + Farneback): ~19 s per cycle (density 18.7 s; flow 0.3 s; zones/forecast/risk 10–30 ms) → laptop cannot run live. A100 measurement = notebook 06 (user, pending).
   Result:
 - [ ] **T9.3 (AGENT)** Figures: heatmap frame, forecast chart, alert timeline from a run that turns critical.
