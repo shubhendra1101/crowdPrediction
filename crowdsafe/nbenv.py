@@ -184,3 +184,30 @@ def ensure_raft_large_weights() -> str:
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(src, dst)
     return f"from HF mirror {RAFT_HF_MIRROR[0]}, sha256 verified -> {dst}"
+
+
+def ensure_chronos_importable(versions: tuple[str, ...] = ("4.56.2", "4.55.4", "4.53.3", "4.51.3")) -> str:
+    """Make `from chronos import Chronos2Pipeline` work with the container's (older) PyTorch.
+
+    transformers 5.x refuses PyTorch < 2.6 (NVIDIA containers ship e.g. 2.3), which breaks Chronos-2
+    imports. If the import fails, install older transformers 4.x versions (constrained: torch/numpy untouched)
+    one by one until it works. Returns a short status line.
+    """
+    def check() -> tuple[bool, str]:
+        r = subprocess.run([sys.executable, "-c", "import torch, transformers; from chronos import Chronos2Pipeline; "
+                            "print(torch.__version__, transformers.__version__)"], capture_output=True, text=True)
+        return r.returncode == 0, (r.stdout.strip() or r.stderr.strip()[-300:])
+
+    ok, msg = check()
+    tried = []
+    if not ok:
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+            f.write(constraints_text())             # torch / numpy stay at the container versions
+            cons = Path(f.name)
+    for v in versions:
+        if ok:
+            break
+        _pip([f"transformers=={v}"], cons)          # with its own deps (tokenizers, huggingface_hub) resolved
+        tried.append(v)
+        ok, msg = check()
+    return f"Chronos-2 importable: {ok} (torch, transformers = {msg})" + (f"; tried transformers {tried}" if tried else "")

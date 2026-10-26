@@ -56,6 +56,7 @@ PKGS = ["chronos-forecasting>=2.0", "accelerate", "jupedsim==1.4.2", "deprecated
         "safetensors", "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "pandas", "pyarrow", "pyyaml",
         "matplotlib", "supervision==0.30.6", "certifi"]
 print(nbenv.safe_pip(PKGS, log=OUT / "pip_install.log"))
+print(nbenv.ensure_chronos_importable())   # older transformers if the container's PyTorch is < 2.6
 print(nbenv.fix_cv2())
 print(nbenv.gpu_summary(require=True))
 print("RAFT weights:", nbenv.ensure_raft_large_weights())   # HF mirror, SHA-256 checked (download.pytorch.org is blocked)

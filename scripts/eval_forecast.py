@@ -89,7 +89,7 @@ def main() -> int:
     pd.concat([points["val"], test], ignore_index=True).to_parquet(args.out.with_name(args.out.stem + "_points.parquet"), index=False)
     table.to_csv(args.out.with_suffix(".csv"), index=False)
     runs = {s: len(set(p["camera_id"])) for s, p in points.items()}
-    text = [f"# Forecasting on Jülich (T6.1–T6.4, Jülich part)", "",
+    text = [f"# Forecasting: {args.config.stem} (T6.1–T6.4)", "",
             f"Generated {time.strftime('%Y-%m-%d %H:%M')}. Test = {cfg['split']['test']} ({runs['test']} runs); "
             f"conformal calibration on val = {cfg['split']['val']} ({runs['val']} runs). Context {cfg['context_s']} s, "
             f"a forecast every {cfg['origin_stride_s']} s. Density in persons/m².", "",
