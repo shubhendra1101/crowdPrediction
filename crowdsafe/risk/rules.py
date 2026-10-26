@@ -76,6 +76,11 @@ class RiskEngine:
             v = now.get(key, np.nan)
             if key in self.th and np.isfinite(v) and v >= self.th[key]:
                 out.append(f"{label} {v:.2f} ≥ {self.th[key]:.2f}")
+        if "rise_rate" in self.th and now["density"] >= self.th.get("rise_min_density", 1.0):
+            w = hist[hist["timestamp"] >= now["timestamp"] - self.th.get("rise_window_s", 10.0)]
+            sd = _slope(w["timestamp"].to_numpy(float), w["density"].to_numpy(float)) if len(w) >= 5 else np.nan
+            if np.isfinite(sd) and sd >= self.th["rise_rate"]:
+                out.append(f"density rising fast: +{sd:.2f} persons/m² per s ≥ {self.th['rise_rate']:.2f}")
         v = now.get("mean_speed", np.nan)
         if "slow_speed" in self.th and np.isfinite(v) and v <= self.th["slow_speed"] and now["density"] >= self.collapse_min:
             out.append(f"crowd slowing: {v:.2f} m/s ≤ {self.th['slow_speed']:.2f}")

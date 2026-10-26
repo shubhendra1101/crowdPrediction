@@ -39,3 +39,11 @@ def test_hysteresis_raise_and_clear() -> None:
     a = mgr.history[0]
     assert a.since == 17.0 and a.level == "High"                # raised 10 s after the level was reached at t=7
     assert a.cleared == 27.0 + 30.0                             # cleared after 30 s below
+
+
+def test_rate_of_rise_precursor() -> None:
+    eng = RiskEngine(thresholds={"rise_rate": 0.1, "rise_window_s": 10.0, "rise_min_density": 1.0, "collapse_enabled": False})
+    fast = eng(_hist(list(np.linspace(1.0, 3.5, 30)), [0.5] * 30), None)[0]    # +0.086/s over 29 s, last 10 s same
+    steep = eng(_hist([1.0] * 20 + list(np.linspace(1.0, 3.0, 10)), [0.5] * 30), None)[0]
+    assert fast.level == "Medium"                                                # slope below 0.1 -> no escalation
+    assert steep.base_level == "Medium" and steep.level == "High" and any("rising fast" in s for s in steep.reasons)

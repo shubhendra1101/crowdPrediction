@@ -137,7 +137,7 @@ def replay(feat: pd.DataFrame, points: pd.DataFrame | None, engine: RiskEngine, 
 
 
 def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float = 30.0, fa_window_s: float = 120.0,
-          window_s: float = 70.0, warmup_s: float = 15.0) -> dict:
+          window_s: float = 70.0, warmup_s: float = 15.0, event_from_s: float | None = None) -> dict:
     """Event scores. `alerted_before_%` counts any alert raised before the event (an alert raised early and kept on
     counts, with a long lead). Stricter, reported alongside: `warned_in_window_%` = an alert raised within `window_s`
     before the event (max forecast horizon + raise delay) and not in the first `warmup_s` of monitoring, when the
@@ -155,7 +155,10 @@ def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float 
         hi = g.loc[g["density"] >= level, "timestamp"]
         za = al[(al["camera_id"] == cam) & (al["zone_id"] == zone)]["since"].to_numpy(float)
         ev = float(hi.min()) if len(hi) else None
-        if ev is not None and ev < start:                    # already above before monitoring could start
+        if event_from_s is not None:                         # fixed event set for comparing variants with different starts
+            if ev is not None and ev < g["timestamp"].min() + event_from_s:
+                ev = None
+        elif ev is not None and ev < start:                  # already above before monitoring could start
             ev = None
         if ev is not None:
             before = za[za <= ev]
