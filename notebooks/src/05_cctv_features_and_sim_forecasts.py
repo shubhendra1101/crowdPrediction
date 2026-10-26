@@ -10,7 +10,7 @@
 # 3. Forecasts the CCTV features (persistence + Chronos-2) for the alert replay.
 #
 # **Before running:** upload the CCTV videos `cam01.asf … cam04.asf` (from the laptop's `data/cctv/`) into
-# `~/crowdsafe_work/data/cctv/`. Missing videos are skipped (the rest still runs).
+# `~/crowdsafe_work1/data/cctv/`. Missing videos are skipped (the rest still runs).
 #
 # **How to run:** `Kernel → Restart & Run All`. **Return:** `crowdsafe_nb05_report.zip` (download with the link at the end).
 
@@ -23,7 +23,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-WORK = Path(os.environ.get("CROWDSAFE_WORK", Path.home() / "crowdsafe_work"))
+WORK = Path(os.environ.get("CROWDSAFE_WORK", Path.home() / "crowdsafe_work1"))   # your work folder on the server
 VIDEOS = WORK / "data" / "cctv"
 REPO_DIR = WORK / "crowdPrediction"
 REPO_URL = "https://github.com/shubhendra1101/crowdPrediction.git"
