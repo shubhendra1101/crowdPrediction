@@ -13,11 +13,11 @@ We tested three ready-made models without retraining them (zero-shot) on our own
 
 Average error, in people per frame (lower is better):
 
-| Model | What it does | H705 classroom | H706 classroom | H103 lab |
-|---|---|---|---|---|
-| **CLIP-EBC** | estimates a "crowd density map" | **5.1** | **2.6** | **2.0** |
-| YOLO11l | draws a box around each visible person | 6.4 | 6.5 | 17.6 |
-| CrowdHuman head detector | draws a box around each visible head | — | 6.2 | 28.2 |
+  Model   What it does   H705 classroom   H706 classroom   H103 lab  
+ --- --- --- --- --- 
+  **CLIP-EBC**   estimates a "crowd density map"   **5.1**   **2.6**   **2.0**  
+  YOLO11l   draws a box around each visible person   6.4   6.5   17.6  
+  CrowdHuman head detector   draws a box around each visible head   —   6.2   28.2  
 
 **Conclusion:** the counting works. CLIP-EBC is accurate in every room. The box detectors fail when people are partly hidden: in the lab, monitors cover the bodies, and YOLO misses most people.
 
@@ -35,14 +35,14 @@ On the public ShanghaiTech benchmark, CLIP-EBC's error is 67 (Part A, very dense
 - **Within one room (H705)**, it looked great: error 1.6–2.1, against 5.3 for CLIP-EBC alone. That was only because the two models erred in opposite directions in that room (+5 and −6), so averaging cancelled the errors out.
 - **The fair test** fits the rule on two rooms and tests it on the third, unseen room, repeated for each room:
 
-| Method | Mean error on the unseen room |
-|---|---|
-| Hard switch (use YOLO only when the scene is nearly empty) | **3.16** |
-| CLIP-EBC alone | **3.22** |
-| 50/50 average | 4.48 |
-| One fixed weight | 4.56 |
-| Learned per-frame fusion (the planned contribution) | 5.22 |
-| YOLO alone | 10.17 |
+  Method   Mean error on the unseen room  
+ --- --- 
+  Hard switch (use YOLO only when the scene is nearly empty)   **3.16**  
+  CLIP-EBC alone   **3.22**  
+  50/50 average   4.48  
+  One fixed weight   4.56  
+  Learned per-frame fusion (the planned contribution)   5.22  
+  YOLO alone   10.17  
 
 **Conclusion:** the learned fusion is *worse* than CLIP-EBC alone on rooms it hasn't seen. It overfits each room's quirks. This is still a valid and useful finding for the paper: "a density model is robust across rooms; detector fusion does not transfer."
 
@@ -64,13 +64,13 @@ esults/calibration.md):
 
 **Checks against measurements the fit never used:**
 
-| Room | Check | Calibration | Measured |
-|---|---|---|---|
-| H705 | row spacing | 0.99 m | 0.96 m (+3 %) |
-| H705 | desk + gap across | 1.69 m | 1.77 m (−5 %) |
-| H706 | desk + gap across | 1.78 m | 1.77 m (+1 %) |
-| H706 | door width | 1.19 m | 1.12 m (+6 %) |
-| H103 | hidden columns 3–4 position | within 0.03–0.18 m | — |
+  Room   Check   Calibration   Measured  
+ --- --- --- --- 
+  H705   row spacing   0.99 m   0.96 m (+3 %)  
+  H705   desk + gap across   1.69 m   1.77 m (−5 %)  
+  H706   desk + gap across   1.78 m   1.77 m (+1 %)  
+  H706   door width   1.19 m   1.12 m (+6 %)  
+  H103   hidden columns 3–4 position   within 0.03–0.18 m   —  
 
 **Two things that disagree with the notes:**
 - The **H706 camera** is mounted near the ceiling (~2.6–2.7 m), not at door height.
@@ -80,11 +80,11 @@ esults/calibration.md):
 
 **Density per zone, CLIP-EBC vs hand labels, 160 frames:**
 
-| Room | Error (persons/m²) | Highest true density |
-|---|---|---|
-| H705 | 0.10 | 1.7 |
-| H706 | 0.08 | 1.4 |
-| H103 | 0.08 | 1.3 |
+  Room   Error (persons/m²)   Highest true density  
+ --- --- --- 
+  H705   0.10   1.7  
+  H706   0.08   1.4  
+  H103   0.08   1.3  
 
 - 94–98 % of labelled heads fall inside a zone.
 - Changing the assumed head height (1.1–1.6 m) changes the error by at most 0.03.

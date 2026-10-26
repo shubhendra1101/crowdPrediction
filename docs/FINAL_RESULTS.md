@@ -40,8 +40,8 @@ The learned fusion does not transfer to unseen rooms. Files: `results/fusion_loc
 ## 2. Camera calibration and people per m²
 **Method:** a full camera model (lens distortion, position, tilt) fitted from desk tops and straight edges. It was checked against measurements the fit did not use:
 - row spacing within 3 %;
-- desk + gap spacing within 1–5 %;
-- door width within 6 %;
+- mean desk + gap spacing within 1–5 % (single gaps up to 10 %);
+- door width within 10 %;
 - lab table positions within 0.03–0.18 m.
 
 Files: `results/calibration.md`, `results/figures/calibration_*.jpg`.

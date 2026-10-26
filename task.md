@@ -202,6 +202,7 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
 - [ ] **T9.3 (AGENT)** Figures: heatmap frame, forecast chart, alert timeline from a run that turns critical.
   Result:
 - [ ] **T9.4 (AGENT)** Draft methodology and results text from `results/` only; list citations for every model and dataset.
+  Result: 2026-10-26 — first full draft \docs/paper_draft.md\ (abstract → conclusion, 5 tables, figure list, references marked [CHECK]); every number from esults/\.
   Result:
 - [ ] **T9.5 (USER)** Final review; rehearse the replay demo.
   Result:
