@@ -23,7 +23,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-WORK = Path(os.environ.get("CROWDSAFE_WORK", Path.home() / "crowdsafe_work1"))   # your work folder on the server
+# Work folder = the one you see in the Jupyter file browser (Jupyter's start folder is NOT always ~ / /root).
+_candidates = [Path(os.environ["CROWDSAFE_WORK"])] if "CROWDSAFE_WORK" in os.environ else []
+_candidates += [Path.cwd() / "crowdsafe_work1", Path.home() / "crowdsafe_work1"]
+WORK = next((c.resolve() for c in _candidates if (c / "data" / "cctv").exists()), _candidates[0].resolve())
+print("work folder:", WORK)
 VIDEOS = WORK / "data" / "cctv"
 REPO_DIR = WORK / "crowdPrediction"
 REPO_URL = "https://github.com/shubhendra1101/crowdPrediction.git"
