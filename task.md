@@ -169,6 +169,7 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
 - [x] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
   Result: 2026-10-24 — `crowdsafe/risk/alerts.py` (raise 10 s / clear 30 s), `scripts/eval_alerts.py`. Held-out Jülich (9 zone events ≥ 4 persons/m², small sample): alerted *before* the event — current density 0 %, persistence 22 %, physics 22 % (11.9 false alarms/zone-h), **Chronos-2 per-zone 56 % (median lead 19 s, mean 96 s; 1.8 false alarms/zone-h)**; precursors lift density-only to 33 % and persistence to 44 % but add nothing to Chronos-2. esults/alerts_julich.md\.
   Result: 2026-10-26 — **Metric correction:** many alerts were raised in the first seconds of monitoring (first forecast extrapolates the start-up ramp) and simply stayed on, which counted as early warnings with long leads. Added a strict metric (`in window %`: alert ≤ longest horizon + 10 s before the event, not in the first 15 s). Strict results, event = 4 persons/m²: Jülich (9 events) density-only 0 %, persistence/physics/Chronos-2 11 % each (1 event); sim (47 events) density-only 0 %, persistence 0 %, physics 32 % (median 25 s), Chronos-2 per-zone 34 % (7.5 s), joint 30 %. The earlier 56 % / 86 % figures used the loose metric and must not be quoted. Real CCTV: no zone reaches 4 → no events, no alerts, 0 false alarms in 8.6 zone-hours. Figures: `results/figures/timeline_cam02.png`, `timeline_julich_corridor.png`, `timeline_julich_entrance.png`.
+  Result: 2026-10-26 — User kept setting A (D8); ablation of shorter wait / rate-of-rise / shorter history in `results/alert_experiment.md`. One-page results for the mentor: `docs/FINAL_RESULTS.md`.
 - [ ] **T7.5 (USER)** Review default thresholds for the venue context (Indian crowd densities may justify different limits); confirm or adjust.
   Result:
 
@@ -176,10 +177,13 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
 
 - [ ] **T8.1 (AGENT)** Multiprocess runtime (decoder, counting, motion, features/forecast/risk).
   Result:
-- [ ] **T8.2 (AGENT)** FastAPI WebSocket with the message schema in `architecture.md` §2.7.
+  Result: 2026-10-26 — Replay mode only for now: stored features + forecasts re-run through the risk engine (`crowdsafe/server/replay.py`). A live multiprocess runtime (decoder → counting → motion → forecast) is not built; optional if time allows.
+- [x] **T8.2 (AGENT)** FastAPI WebSocket with the message schema in `architecture.md` §2.7.
   Result:
-- [ ] **T8.3 (AGENT)** Dashboard: heatmap, forecast chart with band, alert feed, replay mode.
+  Result: 2026-10-26 — `crowdsafe/server/app.py`: REST (runs, layout, frame, summary) + WebSocket `/ws/replay/{id}` streaming the architecture §2.7 messages; smoke test `tests/test_server.py`.
+- [x] **T8.3 (AGENT)** Dashboard: heatmap, forecast chart with band, alert feed, replay mode.
   Result:
+  Result: 2026-10-26 — `dashboard/` (Next.js): run picker (3 CCTV rooms, 2 Jülich crowds, 2 simulations), camera view with zones coloured by level and live density, time bar with peak density + alert marks (click to seek), forecast chart with 10–90 % band, alert feed with reasons, speed 1–60×. Checked in the browser on cam02 and the Jülich corridor run.
 - [ ] **T8.4 (USER)** Try the demo; list what looks wrong or unclear.
   Result:
 

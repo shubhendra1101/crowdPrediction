@@ -1,0 +1,26 @@
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #e3e6eb;
+  --low: #2e9e44; --medium: #e0b100; --high: #f07d1a; --critical: #d7263d; --accent: #2f6fdb;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #12151b; --panel: #1b2029; --text: #e6e9ef; --muted: #98a2b3; --border: #2b3240; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel); }
+header h1 { font-size: 18px; margin: 0 12px 0 0; }
+select, button { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 16px; padding: 16px; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-width: 0; }
+.panel h2 { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; background: var(--c); vertical-align: -1px; }
+.stat { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stat b { color: var(--text); font-size: 18px; display: block; }
+.alert { border-left: 4px solid var(--critical); padding: 6px 8px; margin: 6px 0; background: color-mix(in srgb, var(--critical) 8%, transparent); border-radius: 4px; font-size: 13px; }
+.alert.High { border-color: var(--high); background: color-mix(in srgb, var(--high) 10%, transparent); }
+.muted { color: var(--muted); font-size: 13px; }
+svg text { font-family: inherit; }
+.timebar { cursor: pointer; }

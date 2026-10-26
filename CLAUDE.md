@@ -169,7 +169,8 @@ pytest -q
 # run the pipeline on a clip (to be created in T3/T4)
 python scripts/run_pipeline.py --config configs/cam01.yaml --video data/cctv/cam01.mp4
 
-# server + dashboard (to be created in T8)
-uvicorn server.app:app --reload
-cd dashboard && npm run dev
+# server + dashboard (T8, replay)
+python -m uvicorn crowdsafe.server.app:app --port 8000
+npm --prefix dashboard install   # first time only
+npm --prefix dashboard run dev   # then open http://localhost:3000
 ```

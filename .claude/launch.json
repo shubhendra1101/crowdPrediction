@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "crowdsafe-api",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "crowdsafe.server.app:app", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "crowdsafe-dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "dashboard", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

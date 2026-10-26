@@ -41,3 +41,6 @@ certifi
 jupedsim==1.4.2         # T5.4 simulations (CPU)
 deprecated              # needed by jupedsim on Python < 3.13
 av                      # PyAV: reads ASF/H.264 CCTV when OpenCV has no FFmpeg (NVIDIA containers)
+websockets              # WebSocket support for uvicorn (dashboard replay)
+fastapi
+uvicorn
