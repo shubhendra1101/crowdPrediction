@@ -56,7 +56,7 @@ from crowdsafe import nbenv
 
 print("CPU threads capped to", nbenv.limit_threads())   # container quota, not the 256 host cores
 
-PKGS = ["chronos-forecasting>=2.0", "accelerate", "jupedsim==1.4.2", "deprecated", "pedpy", "shapely>=2.0", "huggingface_hub>=0.24",
+PKGS = ["chronos-forecasting>=2.0", "accelerate", "jupedsim==1.4.2", "deprecated", "av", "pedpy", "shapely>=2.0", "huggingface_hub>=0.24",
         "safetensors", "einops", "ftfy", "regex", "timm==0.9.16", "tensorboardX", "scipy", "pandas", "pyarrow", "pyyaml",
         "matplotlib", "supervision==0.30.6", "certifi"]
 print(nbenv.safe_pip(PKGS, log=OUT / "pip_install.log"))
