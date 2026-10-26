@@ -1,0 +1,9 @@
+camera_id,zone_id,since,monitor_start,monitor_end,n_zones,variant
+cam02,,,29.0,894.0,10,current density only
+cam04,,,29.0,2249.0,10,current density only
+cam02,,,29.0,894.0,10,persistence upper bound
+cam04,,,29.0,2249.0,10,persistence upper bound
+cam02,,,29.0,894.0,10,chronos2_per_zone upper bound
+cam04,,,29.0,2249.0,10,chronos2_per_zone upper bound
+cam02,,,29.0,894.0,10,chronos2_joint upper bound
+cam04,,,29.0,2249.0,10,chronos2_joint upper bound

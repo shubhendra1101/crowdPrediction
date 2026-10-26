@@ -1,13 +1,11 @@
-variant,event_density,events,alerted_before_%,late_%,missed_%,median_lead_s,mean_lead_s,alerts,false_alarms,false_alarms_per_zone_hour,zone_hours
-current density only,4.0,29,0.0,75.9,24.1,,,43,0,0.0,11.72
-current density only,5.0,25,60.0,40.0,0.0,2.0,4.3,43,3,0.26,11.72
-current density + precursors,4.0,29,0.0,75.9,24.1,,,43,0,0.0,11.72
-current density + precursors,5.0,25,60.0,40.0,0.0,2.0,4.3,43,3,0.26,11.72
-persistence upper bound,4.0,29,0.0,86.2,13.8,,,45,0,0.0,11.31
-persistence upper bound,5.0,25,60.0,40.0,0.0,3.0,5.6,45,5,0.44,11.31
-persistence upper bound + precursors,4.0,29,0.0,86.2,13.8,,,45,0,0.0,11.31
-persistence upper bound + precursors,5.0,25,60.0,40.0,0.0,3.0,5.6,45,5,0.44,11.31
-physics upper bound,4.0,29,86.2,13.8,0.0,25.0,32.2,67,18,1.59,11.31
-physics upper bound,5.0,25,88.0,12.0,0.0,37.5,38.4,67,27,2.39,11.31
-physics upper bound + precursors,4.0,29,86.2,13.8,0.0,25.0,32.2,67,18,1.59,11.31
-physics upper bound + precursors,5.0,25,88.0,12.0,0.0,37.5,38.4,67,27,2.39,11.31
+variant,event_density,events,alerted_before_%,late_%,missed_%,median_lead_s,mean_lead_s,warned_in_window_%,median_lead_in_window_s,alerts,false_alarms,false_alarms_per_zone_hour,zone_hours
+current density only,4.0,47,0.0,87.2,12.8,,,0.0,,41,0,0.0,11.17
+current density only,5.0,34,44.1,55.9,0.0,10.0,11.7,38.2,5.0,41,7,0.63,11.17
+persistence upper bound,4.0,47,0.0,89.4,10.6,,,0.0,,42,0,0.0,11.17
+persistence upper bound,5.0,34,47.1,52.9,0.0,10.0,13.4,38.2,10.0,42,8,0.72,11.17
+physics upper bound,4.0,47,55.3,44.7,0.0,25.0,28.7,31.9,25.0,70,23,2.06,11.17
+physics upper bound,5.0,34,44.1,55.9,0.0,40.0,44.0,23.5,47.5,70,36,3.22,11.17
+chronos2_per_zone upper bound,4.0,47,51.1,48.9,0.0,5.0,8.8,34.0,7.5,65,18,1.61,11.17
+chronos2_per_zone upper bound,5.0,34,47.1,52.9,0.0,30.0,29.4,26.5,35.0,65,31,2.78,11.17
+chronos2_joint upper bound,4.0,47,46.8,53.2,0.0,5.0,6.6,29.8,7.5,64,17,1.52,11.17
+chronos2_joint upper bound,5.0,34,47.1,52.9,0.0,25.0,26.9,26.5,25.0,64,30,2.69,11.17

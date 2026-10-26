@@ -63,13 +63,13 @@ Source of truth for what to do next. The agent ticks tasks and writes the real r
 
 ## Status 2026-10-25 — next step and remaining work
 
-**Next step (user, in the lab):** run notebook 05 (`notebooks/05_cctv_features_and_sim_forecasts.ipynb`): upload it and the
-videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download `crowdsafe_nb05_report.zip` into `weights/`.
+**Done 2026-10-26:** notebook 05 ran (CCTV features + Chronos-2 on sims/CCTV). ~~Next step (user, in the lab): run notebook 05 (`notebooks/05_cctv_features_and_sim_forecasts.ipynb`): upload it and the
+videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download `crowdsafe_nb05_report.zip` into `weights/`.~~ **Next:** T8 dashboard.
 
 **Remaining work (agent unless noted):**
-1. Import notebook 05 results: CCTV zone features, Chronos-2 on sims and CCTV → update `results/alerts_sim.md`, `results/forecasting.md` (T6.4).
+1. ~~Import notebook 05 results~~ done 2026-10-26 (see T6.4/T7.4).
 2. T4.3: check CCTV speeds against simple person tracks (and Jülich), `results/motion_validation.md`.
-3. Real-data replay: H705 class exit (cam02) and one Jülich run through the risk engine → alert timelines (T7.4 figures).
+3. ~~Real-data replay timelines~~ done 2026-10-26 (`scripts/alert_timeline.py`, `results/figures/timeline_*.png`).
 4. T8: replay dashboard (FastAPI + Next.js): camera view with coloured zones, forecast chart with 90 % band, alert list (T8.1–T8.3); T8.4 user tries it.
 5. T5.5 dataset summary; T9: final tables, figures, runtime numbers, methods/results draft (T9.1–T9.4); T9.5 user review + rehearsal.
 6. Optional (user): record a short staged crowding video with the calibrated H705 camera for a stronger real demo.
@@ -101,12 +101,14 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
 
 ### T4 Motion features
 
-- [ ] **T4.1 (AGENT)** RAFT wrapper (`raft_large`, 3–5 FPS, ~960 px); Farneback fallback.
+- [x] **T4.1 (AGENT)** RAFT wrapper (`raft_large`, 3–5 FPS, ~960 px); Farneback fallback.
   Result:
   Result: 2026-10-25 — code done (`crowdsafe/motion/flow.py`: RAFT-large + Farneback fallback, tested). Full run on the A100 in notebook 05 (user, pending).
-- [ ] **T4.2 (AGENT)** Zone motion: flow → m/s via H; density mask; mean_speed, speed_var, pressure, dir_entropy, counterflow, inflow/outflow.
+  Result: 2026-10-26 — A100 run done (notebook 05, RAFT-large via PyAV video reader).
+- [x] **T4.2 (AGENT)** Zone motion: flow → m/s via H; density mask; mean_speed, speed_var, pressure, dir_entropy, counterflow, inflow/outflow.
   Result:
   Result: 2026-10-25 — code done (`crowdsafe/motion/zone_motion.py`, `scripts/cctv_features.py`: density + m/s motion per zone per second, resumable; laptop test on cam02 exit: walking zones 0.16–0.30 m/s). Waiting for notebook 05 results.
+  Result: 2026-10-26 — A100 run done: all 4 cameras, 9,513 s of per-zone density + motion (`data/features/cctv/`, from `weights/crowdsafe_nb05_report/`). Peak zone density 1.7–3.2 persons/m² (cam04–cam01); classrooms never reach 4.
 - [ ] **T4.3 (AGENT)** Validate speeds against Jülich trajectories and ByteTrack tracks → `results/motion_validation.md`.
   Result:
 
@@ -120,9 +122,10 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
   Result: 2026-09-30 — `crowdsafe/features/schema.py` (14 columns, validate/conform) + `logger.py` (Parquet, SQLite); tests pass.
 - [x] **T5.2 (AGENT)** Jülich loader: trajectories → PedPy → feature table, per zone.
   Result: 2026-09-30 — 144 runs / 8 experiments → `data/features/julich/`; 2 m zones; max density 9.0 (entrance_semicircle), 5.65 (entrance_corridor), 5.3 (corridor_uni_2013); 643 zone-s ≥ 5 p/m²; bottleneck1 has no 2 m zone (area 0.6 m wide); PedPy cross-check diff 0.0000 on 6/6. `results/julich_features_summary.md`.
-- [ ] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
+- [x] **T5.3 (AGENT)** Run the pipeline over Mall/UCSD/FDST/CCTV → feature tables.
   Result:
   Result: 2026-10-25 — CCTV part = notebook 05 (pending). Mall/UCSD/FDST dropped (own CCTV + Jülich + sim are enough).
+  Result: 2026-10-26 — CCTV feature tables done (4 cameras).
 - [x] **T5.4 (BOTH)** JuPedSim: agent proposes 3 geometries from the user's venue layout (T2.2); user approves; agent runs 15–20 scenarios incl. surges, exit closures, > 5 persons/m².
   Result: 2026-10-24 — user approved ("OK sims"). 16 scenarios in 4 layouts (H706-like classroom, corridor + bottleneck, hall with two exits, bidirectional corridor) incl. surges, exit closures, opposing flows; 10 exceed 5 persons/m² (max 8.0), classrooms stay < 4. `crowdsafe/simulation/scenarios.py`, `scripts/run_simulations.py`, `results/simulation_summary.md`. Sim alerts (5 held-out scenarios, 29 events ≥ 4): physics fill-rate upper bound alerts 86 % of events early (median 25 s, 1.6 false alarms/zone-h); current density and persistence 0 % early. Chronos-2 on sims pending (A100). `results/alerts_sim.md`, `results/forecast_sim.md`.
   Result:
@@ -142,9 +145,10 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
   Result: 2026-09-30 — Chronos-2 zero-shot on Jülich test (A100): MAE 10/30/60 s per-zone 0.376/0.558/0.727, joint 0.372/0.569/0.741 vs persistence 0.387/0.568/0.711.
 - [x] **T6.3 (AGENT)** Split conformal calibration of the 90% bound.
   Result: 2026-09-30 — split conformal, val→test coverage of calibrated p90 (target 0.90): Chronos-2 per-zone 0.892/0.875/0.925, joint 0.861/0.835/0.880; persistence 0.850/0.660/0.676; physics 0.798/0.700/0.751.
-- [ ] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
+- [x] **T6.4 (AGENT)** Evaluate on held-out data: MAE per horizon, coverage → `results/forecasting.md`.
   Result: 2026-09-30 — Jülich part done: `results/forecast_julich_a100.md` (Chronos-2 ≈ persistence on MAE, but only Chronos-2 gives a near-90% calibrated upper bound). Sim + CCTV parts pending (T5.3/T5.4).
   Result: 2026-10-25 — Jülich done (A100); sim: persistence/physics done on laptop (`results/forecast_sim.md`), Chronos-2 in notebook 05; CCTV in notebook 05.
+  Result: 2026-10-26 — Done. Sim (A100, server's own sim run): Chronos-2 joint 90 % bound coverage 0.91–0.96 vs persistence 0.87–0.93, MAE similar (`results/forecast_sim_a100.md`). Real CCTV (test cam02+cam04): Chronos-2 lowest MAE 0.064–0.097 vs persistence 0.074–0.105 persons/m², coverage 0.89–0.91 (`results/forecast_cctv.md`).
 - [ ] **T6.5 (BOTH, optional)** If Chronos-2 is weak: agent proposes fine-tuning via AutoGluon with time estimate; user decides.
   Result:
 - [ ] **T6.6 (AGENT, optional)** Per-zone GRU comparison.
@@ -164,6 +168,7 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
   Result:
 - [x] **T7.4 (AGENT)** Hysteresis, alert reasons, time-to-critical; replay tool → alert timelines.
   Result: 2026-10-24 — `crowdsafe/risk/alerts.py` (raise 10 s / clear 30 s), `scripts/eval_alerts.py`. Held-out Jülich (9 zone events ≥ 4 persons/m², small sample): alerted *before* the event — current density 0 %, persistence 22 %, physics 22 % (11.9 false alarms/zone-h), **Chronos-2 per-zone 56 % (median lead 19 s, mean 96 s; 1.8 false alarms/zone-h)**; precursors lift density-only to 33 % and persistence to 44 % but add nothing to Chronos-2. esults/alerts_julich.md\.
+  Result: 2026-10-26 — **Metric correction:** many alerts were raised in the first seconds of monitoring (first forecast extrapolates the start-up ramp) and simply stayed on, which counted as early warnings with long leads. Added a strict metric (`in window %`: alert ≤ longest horizon + 10 s before the event, not in the first 15 s). Strict results, event = 4 persons/m²: Jülich (9 events) density-only 0 %, persistence/physics/Chronos-2 11 % each (1 event); sim (47 events) density-only 0 %, persistence 0 %, physics 32 % (median 25 s), Chronos-2 per-zone 34 % (7.5 s), joint 30 %. The earlier 56 % / 86 % figures used the loose metric and must not be quoted. Real CCTV: no zone reaches 4 → no events, no alerts, 0 false alarms in 8.6 zone-hours. Figures: `results/figures/timeline_cam02.png`, `timeline_julich_corridor.png`, `timeline_julich_entrance.png`.
 - [ ] **T7.5 (USER)** Review default thresholds for the venue context (Indian crowd densities may justify different limits); confirm or adjust.
   Result:
 

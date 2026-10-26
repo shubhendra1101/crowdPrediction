@@ -98,6 +98,23 @@ Tested on the public Jülich pedestrian experiments, which have real measured cr
 
 **Conclusion:** the forecaster's value is a trustworthy "worst case in the next minute", which is exactly what an early-warning system needs.
 
+
+## 6. Update 2026-10-26: real CCTV processed, Chronos-2 everywhere, and a correction
+
+- **All 4 CCTV videos processed on the A100:** 9,513 seconds of people per m² and walking speed per zone. The busiest zone ever seen
+  was 3.2 people/m² (H705 lecture); classrooms never reach the danger level (4+).
+- **Forecasting on our own CCTV:** Chronos-2 has the smallest error (0.06–0.10 people/m² for 10–60 s ahead) and its safety upper
+  limit holds about 90 % of the time, as designed.
+- **Correction to the alert results reported earlier.** Many alarms were switched on in the first seconds of a recording and simply
+  stayed on, which my first scoring counted as "early warnings" with long lead times. With a fair, stricter rule (the alarm must come
+  within the forecast window before the crowd gets dangerous, and not in the first 15 s):
+  - **Simulations (47 events):** watching the current density: 0 % warned in time; Chronos-2: 34 % (median 7.5 s ahead);
+    physics method: 32 % (25 s ahead).
+  - **Real Jülich crowds (9 events):** 0 % for current density, 11 % (1 of 9) for the forecasters.
+  - The earlier "56 %" and "86 %" numbers used the loose rule and should **not** be quoted.
+- **What still holds:** reacting to the current density never warns in time, and forecasting turns some of those into warnings.
+  But warnings are seconds ahead, not minutes, and come for about a third of events. That is the honest result to report.
+
 ## 5. Still to do (weeks 4–7)
 1. Crowd-motion warning signs from video (RAFT optical flow: flow collapse, turbulence, "crowd pressure").
 2. Risk engine and tiered alerts, with hysteresis so alerts don't flicker. Measure how many seconds of warning they give.
@@ -106,6 +123,6 @@ Tested on the public Jülich pedestrian experiments, which have real measured cr
 5. Final evaluation and paper figures.
 
 ## Bottom line
-- **Is the model working?** Yes. Counting is accurate (2–5 people error per frame) on rooms it was never trained on, density per zone is within about 0.1 persons/m², and the forecaster gives reliable upper-bound warnings.
+- **Is the model working?** Yes. Counting is accurate (2–5 people error per frame) on rooms it was never trained on, density per zone is within about 0.1 persons/m², the forecaster's upper limit is reliable (~90 %), and forecast-based alarms warn in time for about a third of dangerous events (seconds ahead).
 - **What didn't work:** the learned YOLO+CLIP-EBC fusion. It is reported honestly as a negative result.
 - **What's blocking:** nothing. Optional: re-measure the H706 row spacing and confirm the H706 camera height.

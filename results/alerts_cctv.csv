@@ -1,0 +1,9 @@
+variant,event_density,events,alerted_before_%,late_%,missed_%,median_lead_s,mean_lead_s,warned_in_window_%,median_lead_in_window_s,alerts,false_alarms,false_alarms_per_zone_hour,zone_hours
+current density only,4.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+current density only,5.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+persistence upper bound,4.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+persistence upper bound,5.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+chronos2_per_zone upper bound,4.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+chronos2_per_zone upper bound,5.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+chronos2_joint upper bound,4.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57
+chronos2_joint upper bound,5.0,0,0.0,0.0,0.0,,,0.0,,0,0,0.0,8.57

@@ -104,8 +104,9 @@ def tune(val: pd.DataFrame, level: float, ahead_s: float, win: float, min_densit
     return th, pd.DataFrame(rows)
 
 def replay(feat: pd.DataFrame, points: pd.DataFrame | None, engine: RiskEngine, raise_s: float, clear_s: float,
-           stride: float, window: float) -> pd.DataFrame:
-    """Alerts raised per run/zone. points=None -> react to current density only."""
+           stride: float, window: float, use_forecast: bool = True) -> pd.DataFrame:
+    """Alerts raised per run/zone. use_forecast=False -> react to current density only (same decision times as the
+    forecasters when `points` is given, so every variant is scored over the same monitored period)."""
     rows = []
     for cam, f in feat.groupby("camera_id", sort=False):
         f = f.sort_values("timestamp")
@@ -123,7 +124,7 @@ def replay(feat: pd.DataFrame, points: pd.DataFrame | None, engine: RiskEngine, 
             hist = f.iloc[np.searchsorted(ts, t - window):np.searchsorted(ts, t, side="right")]
             if hist.empty:
                 continue
-            fc = pg.get(t)
+            fc = pg.get(t) if use_forecast else None
             if fc is not None:
                 fc = fc.assign(p90=fc["p90_cal"].fillna(fc["p90"]))[["zone_id", "horizon_s", "p90"]]
             mgr.update(float(t), engine(hist, fc))
@@ -135,10 +136,16 @@ def replay(feat: pd.DataFrame, points: pd.DataFrame | None, engine: RiskEngine, 
     return pd.DataFrame(rows)
 
 
-def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float = 30.0, fa_window_s: float = 120.0) -> dict:
+def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float = 30.0, fa_window_s: float = 120.0,
+          window_s: float = 70.0, warmup_s: float = 15.0) -> dict:
+    """Event scores. `alerted_before_%` counts any alert raised before the event (an alert raised early and kept on
+    counts, with a long lead). Stricter, reported alongside: `warned_in_window_%` = an alert raised within `window_s`
+    before the event (max forecast horizon + raise delay) and not in the first `warmup_s` of monitoring, when the
+    first forecast extrapolates the start-up ramp."""
     mon = alerts[alerts["zone_id"].isna()].set_index("camera_id")
     al = alerts[alerts["zone_id"].notna()]
     leads, late, missed, fa, n_alerts = [], 0, 0, 0, len(al)
+    in_window = []
     zone_hours = 0.0
     for (cam, zone), g in feat.groupby(["camera_id", "zone_id"], sort=False):
         start, end = mon.loc[cam, "monitor_start"], mon.loc[cam, "monitor_end"]
@@ -152,6 +159,9 @@ def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float 
             ev = None
         if ev is not None:
             before = za[za <= ev]
+            strict = before[(before >= ev - window_s) & (before > start + warmup_s)]
+            if len(strict):
+                in_window.append(ev - strict.min())
             if len(before):
                 leads.append(ev - before.min())
             elif len(za[(za > ev) & (za <= ev + late_s)]):
@@ -167,6 +177,8 @@ def score(feat: pd.DataFrame, alerts: pd.DataFrame, level: float, late_s: float 
             "late_%": round(100 * late / max(n_ev, 1), 1), "missed_%": round(100 * missed / max(n_ev, 1), 1),
             "median_lead_s": round(float(np.median(leads)), 1) if leads else None,
             "mean_lead_s": round(float(np.mean(leads)), 1) if leads else None,
+            "warned_in_window_%": round(100 * len(in_window) / max(n_ev, 1), 1),
+            "median_lead_in_window_s": round(float(np.median(in_window)), 1) if in_window else None,
             "alerts": n_alerts, "false_alarms": fa, "false_alarms_per_zone_hour": round(fa / max(zone_hours, 1e-9), 2),
             "zone_hours": round(zone_hours, 2)}
 
@@ -180,39 +192,57 @@ def main() -> int:
     ap.add_argument("--tune-configs", type=Path, nargs="*", default=[Path("configs/forecast_julich.yaml"), Path("configs/forecast_sim.yaml")],
                     help="val splits of these configs are pooled for threshold tuning")
     ap.add_argument("--no-tune", action="store_true", help="use the thresholds already in --risk")
+    ap.add_argument("--features-from-points", action="store_true",
+                    help="take the observed density from the forecast file ('last' at each origin) instead of feature "
+                         "tables — needed when the forecasts were made on another machine's simulation run")
     a = ap.parse_args()
     cfg = yaml.safe_load(a.config.read_text(encoding="utf-8"))
     risk = yaml.safe_load(a.risk.read_text(encoding="utf-8"))
     al = risk["alerts"]
-    test = load_split(cfg, "test")
-    tune_cfgs = [yaml.safe_load(p.read_text(encoding="utf-8")) for p in a.tune_configs]
-    val = pd.concat([load_split(c, "val") for c in tune_cfgs], ignore_index=True)
-    th, tune_tab = tune(val, risk["tuning"]["event_density"], risk["tuning"]["ahead_s"], risk["collapse_window_s"],
-                        risk["collapse_min_density"], risk["tuning"]["min_lift"])
-    if a.no_tune:
-        th = {k: v for k, v in risk["thresholds"].items()}
+    pts = pd.read_parquet(a.points)
+    pts = pts[pts["split"] == "test"]
+    if a.features_from_points:
+        ref = pts[pts["model"] == pts["model"].iloc[0]].drop_duplicates(["camera_id", "zone_id", "origin"])
+        test = pd.DataFrame({"timestamp": ref["origin"].astype(float), "camera_id": ref["camera_id"], "zone_id": ref["zone_id"],
+                             "density": ref["last"].astype(float)})
+        for c in ("mean_speed", "speed_var", "pressure", "dir_entropy", "counterflow"):
+            test[c] = np.nan
+        test = test.sort_values(["camera_id", "zone_id", "timestamp"]).reset_index(drop=True)
     else:
+        test = load_split(cfg, "test")
+    if a.no_tune:
+        tune_tab = pd.DataFrame(columns=["precursor", "direction", "threshold", "f1", "precision", "recall", "base_rate", "n"])
+    else:
+        tune_cfgs = [yaml.safe_load(p.read_text(encoding="utf-8")) for p in a.tune_configs]
+        val = pd.concat([load_split(c, "val") for c in tune_cfgs], ignore_index=True)
+        th, tune_tab = tune(val, risk["tuning"]["event_density"], risk["tuning"]["ahead_s"], risk["collapse_window_s"],
+                            risk["collapse_min_density"], risk["tuning"]["min_lift"])
         risk["thresholds"].update(th)
         risk["thresholds_note"] = (f"tuned {time.strftime('%Y-%m-%d')} by scripts/eval_alerts.py on the pooled val splits of "
                                    + ", ".join(str(p) for p in a.tune_configs))
         a.risk.write_text(yaml.safe_dump(risk, sort_keys=False, allow_unicode=True), encoding="utf-8")
-    pts = pd.read_parquet(a.points)
-    pts = pts[pts["split"] == "test"]
+    any_precursor = any(v not in (None, False) for k, v in risk["thresholds"].items()
+                        if k in ("pressure", "dir_entropy", "counterflow", "slow_speed", "collapse_enabled"))
     kw = dict(bands=tuple(risk["bands"]), thresholds=risk["thresholds"], collapse_window_s=risk["collapse_window_s"],
               collapse_min_density=risk["collapse_min_density"], critical_density=cfg["critical_density"])
-    variants = {"current density only": (None, False), "current density + precursors": (None, True)}
+    variants = {"current density only": (None, False)}
+    if any_precursor:
+        variants["current density + precursors"] = (None, True)
     for m in ["persistence", "physics", "chronos2_per_zone", "chronos2_joint"]:
         if m in pts["model"].unique():
             variants[f"{m} upper bound"] = (m, False)
-            variants[f"{m} upper bound + precursors"] = (m, True)
+            if any_precursor:
+                variants[f"{m} upper bound + precursors"] = (m, True)
     results, timelines = [], []
     for name, (model, pre) in variants.items():
         eng = RiskEngine(use_precursors=pre, **kw)
-        alerts = replay(test, None if model is None else pts[pts["model"] == model], eng, al["raise_after_s"],
-                        al["clear_after_s"], cfg["origin_stride_s"], risk["collapse_window_s"])
+        ref_model = model or pts["model"].iloc[0]           # same decision times for every variant
+        alerts = replay(test, pts[pts["model"] == ref_model], eng, al["raise_after_s"], al["clear_after_s"],
+                        cfg["origin_stride_s"], risk["collapse_window_s"], use_forecast=model is not None)
         timelines.append(alerts.assign(variant=name))
         for lvl in risk["event_levels"]:
-            results.append({"variant": name, "event_density": lvl, **score(test, alerts, lvl)})
+            results.append({"variant": name, "event_density": lvl,
+                            **score(test, alerts, lvl, window_s=max(cfg["horizons_s"]) + al["raise_after_s"])})
         print(name, "done", flush=True)
     res = pd.DataFrame(results)
     a.out.parent.mkdir(parents=True, exist_ok=True)
@@ -226,7 +256,10 @@ def main() -> int:
           f"{cfg['horizons_s']} s. An *event* is a zone first reaching the event density after monitoring starts.", "",
           "- `alerted_before_%`: events with an alert raised before the density got there; `late_%`: alert within 30 s after; "
           "`missed_%`: neither.", "- `lead`: seconds between the alert and the event (alerts raised before it).",
-          "- `false_alarms`: alerts with no event within 120 s after raising (or 30 s before).", "",
+          "- `false_alarms`: alerts with no event within 120 s after raising (or 30 s before).",
+          f"- **`in window %` (stricter, use this for claims):** alert raised at most {max(cfg['horizons_s']) + al['raise_after_s']} s "
+          "(longest horizon + raise delay) before the event and not in the first 15 s of monitoring. `alerted before %` also "
+          "counts alerts raised at the start of a run and simply kept on, which inflates lead times.", "",
           f"## Precursor thresholds (tuned on pooled val splits: {', '.join(p.stem for p in a.tune_configs)})", "",
           f"Target: zone reaches {risk['tuning']['event_density']} persons/m² within {risk['tuning']['ahead_s']} s, among zone-seconds "
           f"currently at 2–4 persons/m². A precursor is kept only if its precision is ≥ {risk['tuning']['min_lift']}× the base rate.", "",
@@ -236,10 +269,11 @@ def main() -> int:
     for lvl in risk["event_levels"]:
         t = res[res["event_density"] == lvl]
         md += ["", f"## Event = {lvl} persons/m²", "",
-               "| Variant | events | alerted before % | late % | missed % | median lead s | mean lead s | alerts | false alarms | per zone-hour |",
-               "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
-        md += [f"| {r['variant']} | {r['events']} | {r['alerted_before_%']} | {r['late_%']} | {r['missed_%']} | {r['median_lead_s']} | "
-               f"{r['mean_lead_s']} | {r['alerts']} | {r['false_alarms']} | {r['false_alarms_per_zone_hour']} |" for _, r in t.iterrows()]
+               "| Variant | events | **in window %** | median lead in window s | alerted before % | late % | missed % | median lead s | alerts | false alarms | per zone-hour |",
+               "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+        md += [f"| {r['variant']} | {r['events']} | {r['warned_in_window_%']} | {r['median_lead_in_window_s']} | {r['alerted_before_%']} | "
+               f"{r['late_%']} | {r['missed_%']} | {r['median_lead_s']} | {r['alerts']} | {r['false_alarms']} | {r['false_alarms_per_zone_hour']} |"
+               for _, r in t.iterrows()]
     a.out.write_text("\n".join(md) + "\n", encoding="utf-8")
     print(tune_tab.to_string(index=False))
     print(res.to_string(index=False))

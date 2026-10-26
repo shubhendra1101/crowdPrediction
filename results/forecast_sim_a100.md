@@ -1,0 +1,26 @@
+# Forecasting: forecast_sim (T6.1–T6.4)
+
+Generated 2026-10-26 07:03. Test = ['class_120_door_closes', 'corr_surge', 'corr_narrow_0p8', 'hall_700_A_closes', 'bidir_2p0'] (5 runs); conformal calibration on val = ['class_90', 'corr_2p5', 'hall_500_A_closes', 'bidir_1p0'] (3 runs). Context 30 s, a forecast every 5 s. Density in persons/m².
+
+- `mae`: error of the median forecast; `mae_dense`: same, only where the true density ≥ 2.
+- `below_p90`: share of true values under the raw upper bound; `below_p90_cal`: after conformal calibration (target 90%); `q`: offset added to the bound, fitted on val.
+- Baselines are point forecasts (p10 = p50 = p90); their calibrated bound is p50 + q.
+
+| model | horizon_s | n | mae | rmse | n_dense | mae_dense | cover_p10_p90 | below_p90 | n_target_critical | below_p90_cal | mean_p90_cal_minus_p50 | q | n_val |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chronos2_joint | 10 | 8200 | 0.162 | 0.353 | 1864 | 0.377 | 0.899 | 0.956 | 943 | 0.937 | 0.276 | -3.898844624927733e-08 | 4080 |
+| chronos2_joint | 30 | 7560 | 0.362 | 0.737 | 1733 | 0.754 | 0.843 | 0.934 | 869 | 0.923 | 0.497 | -1.903841848616139e-07 | 3600 |
+| chronos2_joint | 60 | 6720 | 0.57 | 1.099 | 1514 | 1.149 | 0.795 | 0.93 | 753 | 0.913 | 0.652 | -1.4659360658697551e-06 | 2880 |
+| chronos2_joint | 120 | 5040 | 0.764 | 1.507 | 969 | 1.375 | 0.774 | 0.964 | 514 | 0.963 | 0.802 | -1.6141471860464662e-05 | 1480 |
+| chronos2_per_zone | 10 | 8200 | 0.168 | 0.366 | 1864 | 0.387 | 0.86 | 0.955 | 943 | 0.935 | 0.259 | -4.0399246614697404e-08 | 4080 |
+| chronos2_per_zone | 30 | 7560 | 0.371 | 0.771 | 1733 | 0.764 | 0.792 | 0.933 | 869 | 0.909 | 0.435 | -3.1715404702481464e-07 | 3600 |
+| chronos2_per_zone | 60 | 6720 | 0.583 | 1.147 | 1514 | 1.145 | 0.745 | 0.93 | 753 | 0.905 | 0.611 | -2.040642357314937e-06 | 2880 |
+| chronos2_per_zone | 120 | 5040 | 0.765 | 1.526 | 969 | 1.362 | 0.73 | 0.965 | 514 | 0.945 | 0.788 | -1.6603722542640753e-05 | 1480 |
+| persistence | 10 | 8200 | 0.167 | 0.365 | 1864 | 0.379 | 0.623 | 0.843 | 943 | 0.89 | 0.15 | 0.15000000000000002 | 4080 |
+| persistence | 30 | 7560 | 0.343 | 0.72 | 1733 | 0.704 | 0.601 | 0.845 | 869 | 0.875 | 0.15 | 0.15000000000000002 | 3600 |
+| persistence | 60 | 6720 | 0.558 | 1.103 | 1514 | 1.077 | 0.581 | 0.869 | 753 | 0.869 | 0.0 | 0.0 | 2880 |
+| persistence | 120 | 5040 | 0.747 | 1.492 | 969 | 1.326 | 0.563 | 0.93 | 514 | 0.93 | 0.0 | 0.0 | 1480 |
+| physics | 10 | 8200 | 0.259 | 0.721 | 1864 | 0.734 | 0.629 | 0.832 | 943 | 0.9 | 0.25 | 0.25 | 4080 |
+| physics | 30 | 7560 | 0.658 | 2.024 | 1733 | 1.955 | 0.624 | 0.839 | 869 | 0.874 | 0.25 | 0.25 | 3600 |
+| physics | 60 | 6720 | 1.251 | 3.997 | 1514 | 3.805 | 0.629 | 0.859 | 753 | 0.864 | 0.05 | 0.04999999999999999 | 2880 |
+| physics | 120 | 5040 | 2.32 | 7.915 | 969 | 7.954 | 0.65 | 0.909 | 514 | 0.909 | 0.0 | 0.0 | 1480 |
