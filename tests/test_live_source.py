@@ -38,3 +38,14 @@ def test_offline_backpressure_skips_nothing(tmp_path) -> None:
         time.sleep(0.02)                                        # slow consumer
     src.stop()
     assert len(seen) >= 7 and np.allclose(np.diff(seen), 0.25)
+
+
+def test_regular_grid_fills_skipped_seconds() -> None:
+    import pandas as pd
+
+    from scripts.live_pipeline import regular_grid
+
+    h = pd.DataFrame({"timestamp": [0, 1, 3, 0, 1, 3], "zone_id": ["a"] * 3 + ["b"] * 3, "density": [1, 2, 4, 0, 0, 1.0]})
+    r = regular_grid(h, 1.0).sort_values(["zone_id", "timestamp"])
+    assert r["timestamp"].tolist() == [0, 1, 2, 3] * 2
+    assert r.loc[(r["zone_id"] == "a") & (r["timestamp"] == 2), "density"].item() == 2.0

@@ -52,6 +52,18 @@ def make_forecaster(name: str, device: str):
     return ChronosForecaster(mode=name.split("_", 1)[1], device=device)
 
 
+def regular_grid(hist: pd.DataFrame, step: float) -> pd.DataFrame:
+    """Every zone on every grid second from the first to the last timestamp; a second skipped by a slow cycle is
+    filled with the previous value (live timing is irregular, Chronos-2 needs a fixed frequency)."""
+    grid = np.round(np.arange(hist["timestamp"].min(), hist["timestamp"].max() + step / 2, step), 6)
+    parts = []
+    for z, g in hist.groupby("zone_id"):
+        g = g.set_index("timestamp").reindex(grid).ffill()
+        g["zone_id"] = z
+        parts.append(g.rename_axis("timestamp").reset_index())
+    return pd.concat(parts, ignore_index=True)
+
+
 def gpu_sync(device: str) -> None:
     if device.startswith("cuda"):
         import torch
@@ -170,7 +182,7 @@ def main() -> int:
             gpu_sync(a.device)
             c3 = time.perf_counter()
             mot = motion(fl, D, f1.video_t - f0.video_t) if fl is not None else {}
-            t = round(f0.video_t, 2)
+            t = float(round(f0.video_t / a.step_s) * a.step_s)   # regular grid (Chronos-2 needs a fixed frequency)
             frame_rows = []
             for z in zones:
                 cnt = float((D * masks[z]).sum())
@@ -186,10 +198,11 @@ def main() -> int:
             log.append(pd.DataFrame(frame_rows))
             c5 = time.perf_counter()
             hdf = pd.DataFrame([r for r in hist if r["timestamp"] > t - a.context_s])
+            hdf = hdf.drop_duplicates(["timestamp", "zone_id"], keep="last")      # two cycles in one grid second
             hist = hdf.to_dict("records")
             fc_ms = None
             if t - last_fc_t >= a.forecast_every_s and t - hdf["timestamp"].min() >= a.context_s - a.step_s - 1e-6:
-                g = hdf.dropna(subset=["density"])
+                g = regular_grid(hdf.dropna(subset=["density"]), a.step_s)
                 fc = fcaster.predict(g, HORIZONS)
                 fc["p90"] = np.clip(fc["p90"] + fc["horizon_s"].map(off).fillna(0.0), 0, None)
                 gpu_sync(a.device)
