@@ -2,3 +2,19 @@
   cam02.asf: 600 s of video, 66 fps
   cam02.asf: 900 s of video, 72 fps
 cam02 {'frames': 22700, 'seconds': 908.0, 'fps': 25, 'size_mb': 58.9, 'minutes': 5.3}
+  cam03.asf: 300 s of video, 66 fps
+  cam03.asf: 600 s of video, 76 fps
+  cam03.asf: 900 s of video, 77 fps
+  cam03.asf: 1200 s of video, 78 fps
+  cam03.asf: 1500 s of video, 79 fps
+  cam03.asf: 1800 s of video, 80 fps
+cam03 {'frames': 50300, 'seconds': 2012.0, 'fps': 25, 'size_mb': 85.0, 'minutes': 10.3}
+  cam04.asf: 300 s of video, 93 fps
+  cam04.asf: 600 s of video, 86 fps
+  cam04.asf: 900 s of video, 85 fps
+  cam04.asf: 1200 s of video, 84 fps
+  cam04.asf: 1500 s of video, 84 fps
+  cam04.asf: 1800 s of video, 84 fps
+  cam04.asf: 2100 s of video, 84 fps
+cam04 {'frames': 56550, 'seconds': 2262.0, 'fps': 25, 'size_mb': 100.1, 'minutes': 11.2}
+EXIT 0
