@@ -24,3 +24,6 @@ main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr)
 .muted { color: var(--muted); font-size: 13px; }
 svg text { font-family: inherit; }
 .timebar { cursor: pointer; }
+.banner { padding: 8px 16px; font-size: 13px; color: var(--muted); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border-bottom: 1px solid var(--border); }
+.source { font-size: 12px; margin: -2px 0 8px; padding: 3px 8px; border-radius: 999px; display: inline-block; background: color-mix(in srgb, var(--low) 18%, transparent); }
+.source.grid { background: color-mix(in srgb, var(--medium) 22%, transparent); }

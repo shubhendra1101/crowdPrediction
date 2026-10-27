@@ -12,23 +12,27 @@ function fmt(t) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-function ZoneView({ layout, msg, selected, onSelect }) {
+function ZoneView({ layout, msg, selected, onSelect, videoRef }) {
   if (!layout) return <p className="muted">Loading layout…</p>;
   const zmap = Object.fromEntries((msg?.zones || []).map((z) => [z.zone_id, z]));
   const fill = (id) => LEVEL_COLOR[zmap[id]?.level] || "var(--low)";
   const label = (id) => (zmap[id]?.density == null ? "–" : zmap[id].density.toFixed(1));
   if (layout.kind === "cctv") {
-    return (
-      <svg viewBox={`0 0 ${layout.width} ${layout.height}`} style={{ width: "100%", height: "auto", display: "block", borderRadius: 8 }}>
-        <image href={`${API}${layout.image}`} x="0" y="0" width={layout.width} height={layout.height} />
+    const withVideo = Boolean(layout.video);
+    const overlay = (
+      <svg viewBox={`0 0 ${layout.width} ${layout.height}`}
+           style={withVideo ? { position: "absolute", inset: 0, width: "100%", height: "100%" }
+                            : { width: "100%", height: "auto", display: "block", borderRadius: 8 }}>
+        {!withVideo && <image href={`${API}${layout.image}`} x="0" y="0" width={layout.width} height={layout.height} />}
         {layout.zones.map((z) => {
           if (z.points.length < 3) return null;
           const pts = z.points.map((p) => p.join(",")).join(" ");
           const c = z.points.reduce((a, p) => [a[0] + p[0] / z.points.length, a[1] + p[1] / z.points.length], [0, 0]);
+          const sel = selected === z.zone_id;
           return (
             <g key={z.zone_id} onClick={() => onSelect(z.zone_id)} style={{ cursor: "pointer" }}>
-              <polygon points={pts} fill={fill(z.zone_id)} fillOpacity={selected === z.zone_id ? 0.55 : 0.35}
-                       stroke={selected === z.zone_id ? "#fff" : fill(z.zone_id)} strokeWidth={selected === z.zone_id ? 6 : 3} />
+              <polygon points={pts} fill={fill(z.zone_id)} fillOpacity={withVideo ? (sel ? 0.35 : 0.18) : (sel ? 0.55 : 0.35)}
+                       stroke={sel ? "#fff" : fill(z.zone_id)} strokeWidth={sel ? 6 : 3} />
               <text x={c[0]} y={c[1]} fill="#fff" fontSize="34" fontWeight="700" textAnchor="middle" stroke="#000" strokeWidth="1.5">
                 {label(z.zone_id)}
               </text>
@@ -36,6 +40,14 @@ function ZoneView({ layout, msg, selected, onSelect }) {
           );
         })}
       </svg>
+    );
+    if (!withVideo) return overlay;
+    return (
+      <div style={{ position: "relative", width: "100%", aspectRatio: `${layout.width} / ${layout.height}`, borderRadius: 8, overflow: "hidden", background: "#000" }}>
+        <video ref={videoRef} src={`${API}${layout.video}`} muted playsInline preload="auto"
+               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "fill" }} />
+        {overlay}
+      </div>
     );
   }
   const W = layout.nx * 60, H = layout.ny * 60;
@@ -118,6 +130,21 @@ export default function Page() {
   const [speed, setSpeed] = useState(10);
   const [error, setError] = useState(null);
   const ws = useRef(null);
+  const videoRef = useRef(null);
+
+  // Keep the video on the replay clock: same time, same speed (browsers play at most 16x; above that it is re-synced by seeking).
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !msg || !Number.isFinite(v.duration)) return;
+    if (playing) {
+      v.playbackRate = Math.min(speed, 16);
+      if (Math.abs(v.currentTime - msg.timestamp) > Math.max(1.5, speed * 0.25)) v.currentTime = msg.timestamp;
+      if (v.paused) v.play().catch(() => {});
+    } else {
+      v.pause();
+      if (Math.abs(v.currentTime - msg.timestamp) > 0.5) v.currentTime = msg.timestamp;
+    }
+  }, [msg, playing, speed]);
 
   useEffect(() => {
     fetch(`${API}/api/runs`).then((r) => r.json()).then((rs) => { setRuns(rs); if (rs.length) setRun(rs[0].id); })
@@ -126,9 +153,11 @@ export default function Page() {
 
   useEffect(() => {
     if (!run) return;
+    let alive = true;                       // ignore late answers for a run that is no longer selected
     stop(); setMsg(null); setHistory({}); setZone(null); setLayout(null); setSummary(null);
-    fetch(`${API}/api/runs/${run}/layout`).then((r) => r.json()).then(setLayout);
-    fetch(`${API}/api/runs/${run}/summary`).then((r) => r.json()).then((s) => { setSummary(s); play(s.start); });
+    fetch(`${API}/api/runs/${run}/layout`).then((r) => r.json()).then((l) => { if (alive) setLayout(l); });
+    fetch(`${API}/api/runs/${run}/summary`).then((r) => r.json()).then((s) => { if (alive) { setSummary(s); play(s.start); } });
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run]);
 
@@ -152,7 +181,9 @@ export default function Page() {
   }
 
   const seek = (t) => { setHistory({}); play(t); };
-  const title = runs.find((r) => r.id === run)?.title;
+  const cur = runs.find((r) => r.id === run);
+  const title = cur?.title;
+  const groups = [...new Set(runs.map((r) => r.source))];
   const peak = msg ? Math.max(...msg.zones.map((z) => z.density || 0)) : null;
   const worst = msg ? msg.zones.reduce((a, z) => (["Low", "Medium", "High", "Critical"].indexOf(z.level) > ["Low", "Medium", "High", "Critical"].indexOf(a) ? z.level : a), "Low") : "Low";
 
@@ -161,7 +192,11 @@ export default function Page() {
       <header>
         <h1>CrowdSafe — replay</h1>
         <select value={run || ""} onChange={(e) => setRun(e.target.value)}>
-          {runs.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}
+          {groups.map((g) => (
+            <optgroup key={g} label={g}>
+              {runs.filter((r) => r.source === g).map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}
+            </optgroup>
+          ))}
         </select>
         <button className="primary" onClick={() => (playing ? stop() : play(msg?.timestamp ?? summary?.start))}>{playing ? "Pause" : "Play"}</button>
         <label className="muted">speed&nbsp;
@@ -171,12 +206,20 @@ export default function Page() {
         </label>
         <span className="muted">{msg ? `t = ${fmt(msg.timestamp)} / ${fmt(summary?.end || 0)}` : ""}</span>
       </header>
+      <div className="banner">
+        <b>Replay of processed recordings.</b> People counting (CLIP-EBC), movement and the forecasts (Chronos-2) were computed
+        beforehand on the GPU for every second of the recording; this page replays those results and applies the risk and alarm
+        rules. It is not a live camera feed.
+      </div>
       {error && <p style={{ padding: "8px 16px", color: "var(--critical)" }}>{error}</p>}
       <div style={{ padding: "8px 16px 0" }}><TimeBar summary={summary} t={msg?.timestamp} onSeek={seek} /></div>
       <main>
         <section className="panel">
           <h2>{title || "Zones"}</h2>
-          <ZoneView layout={layout} msg={msg} selected={zone} onSelect={setZone} />
+          {cur && <p className={`source ${cur.kind}`}>Data: {cur.source}{cur.kind === "cctv" && !cur.has_video
+            ? " — video file not prepared, showing a still frame (run scripts/make_web_videos.py)" : ""}
+            {cur.kind !== "cctv" ? " — each box is a 2 m × 2 m floor cell" : ""}</p>}
+          <ZoneView layout={layout} msg={msg} selected={zone} onSelect={setZone} videoRef={videoRef} />
           <div className="legend">
             <span style={{ "--c": "var(--low)" }}>Low &lt; 2</span><span style={{ "--c": "var(--medium)" }}>Medium 2–4</span>
             <span style={{ "--c": "var(--high)" }}>High 4–5</span><span style={{ "--c": "var(--critical)" }}>Critical ≥ 5 persons/m²</span>
@@ -201,9 +244,9 @@ export default function Page() {
             <h2>Alerts</h2>
             {msg?.alerts.length ? msg.alerts.map((a, i) => (
               <div key={i} className={`alert ${a.level}`}>
-                <b>{a.level}</b> in zone <b>{a.zone_id}</b> since {fmt(a.since)}
+                <b>{a.level}</b> <span className="muted">(highest level reached)</span> in zone <b>{a.zone_id}</b> since {fmt(a.since)}
                 {a.time_to_critical_s != null && <> · critical in ≤ {a.time_to_critical_s} s</>}
-                <div className="muted">{a.reason}</div>
+                <div className="muted">{(a.reason || "").split("; ").filter(Boolean).at(-1)}</div>
               </div>)) : <p className="muted">No active alerts.</p>}
             {summary && <p className="muted">This run: {summary.alerts.length} alert(s) in total (red marks on the time bar). Peak density {summary.peak_density} persons/m².</p>}
           </div>

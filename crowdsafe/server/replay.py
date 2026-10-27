@@ -32,8 +32,15 @@ def list_runs() -> list[dict]:
     for r in _cfg()["runs"]:
         ok = (ROOT / r["points"]).exists() and (r["features"] is None or (ROOT / r["features"]).exists())
         if ok:
-            out.append({"id": r["id"], "title": r["title"], "kind": r["kind"]})
+            out.append({"id": r["id"], "title": r["title"], "kind": r["kind"], "source": r.get("source", ""),
+                        "has_video": video_path(r["id"]) is not None})
     return out
+
+
+def video_path(run_id: str) -> Path | None:
+    """Browser-playable video of the run, if it exists (configs/dashboard.yaml `video`)."""
+    v = _run_cfg(run_id).get("video")
+    return (ROOT / v) if v and (ROOT / v).exists() else None
 
 
 def _run_cfg(run_id: str) -> dict:
@@ -137,7 +144,7 @@ def layout(run_id: str) -> dict:
             uv = np.clip(uv, [-50, -50], [cam.image_size[0] + 50, cam.image_size[1] + 50])
             out.append({"zone_id": z, "points": np.round(uv, 1).tolist()})
         return {"kind": "cctv", "width": cam.image_size[0], "height": cam.image_size[1], "image": f"/api/runs/{run_id}/frame",
-                "zones": out}
+                "video": f"/api/runs/{run_id}/video" if video_path(run_id) else None, "zones": out}
     cells = {z: _grid_cell(z) for z in zones}
     cells = {z: c for z, c in cells.items() if c is not None}
     xs, ys = [c[0] for c in cells.values()], [c[1] for c in cells.values()]

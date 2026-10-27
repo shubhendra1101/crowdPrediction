@@ -16,7 +16,7 @@ import asyncio
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 
 from crowdsafe.server import replay
 
@@ -45,6 +45,16 @@ def layout(run_id: str) -> dict:
 def frame(run_id: str) -> Response:
     _check(run_id)
     return Response(replay.frame_jpeg(run_id), media_type="image/jpeg")
+
+
+@app.get("/api/runs/{run_id}/video")
+def video(run_id: str) -> FileResponse:
+    """MP4 of the run (supports range requests, so the browser can seek)."""
+    _check(run_id)
+    p = replay.video_path(run_id)
+    if p is None:
+        raise HTTPException(404, "no video for this run")
+    return FileResponse(p, media_type="video/mp4")
 
 
 @app.get("/api/runs/{run_id}/summary")

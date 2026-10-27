@@ -1,50 +1,61 @@
 # Replay dashboard (T8). Each run = features (observed density) + stored forecasts; the risk engine and alert
 # manager are re-run on load with configs/risk.yaml. `forecast_model` is the forecaster whose calibrated upper bound
 # drives the risk level.
+# source: label shown to the viewer. video: browser-playable MP4 made by scripts/make_web_videos.py (optional).
 forecast_model: chronos2_joint
 runs:
-  - id: cam02
-    title: "Real CCTV — H705: lecture, class leaves, empty"
-    kind: cctv
-    camera: cam02
-    features: data/features/cctv/cam02.parquet
-    points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
-    frame: data/cctv/audit/cam02_emptiest_t765s.jpg
-  - id: cam04
-    title: "Real CCTV — H103 lab: empty, students arrive"
-    kind: cctv
-    camera: cam04
-    features: data/features/cctv/cam04.parquet
-    points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
-    frame: data/cctv/audit/cam04_emptiest_t20s.jpg
-  - id: cam03
-    title: "Real CCTV — H706: students studying, leaving at break"
-    kind: cctv
-    camera: cam03
-    features: data/features/cctv/cam03.parquet
-    points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
-    frame: data/cctv/audit/cam03_emptiest_t1470s.jpg
-  - id: julich_corridor
-    title: "Real crowd (Jülich corridor experiment, > 5 persons/m²)"
-    kind: grid
-    camera: julich_corridor_uni_2013/uni_corr_500_09
-    features: data/features/julich/julich_corridor_uni_2013
-    points: weights/crowdsafe_nb04_report/forecast_julich_points.parquet
-  - id: julich_entrance
-    title: "Real crowd (Jülich entrance experiment, up to 9 persons/m²)"
-    kind: grid
-    camera: julich_entrance_semicircle/entrance_1
-    features: data/features/julich/julich_entrance_semicircle
-    points: weights/crowdsafe_nb04_report/forecast_julich_points.parquet
-  - id: sim_hall
-    title: "Simulation — hall, 700 people, main exit closes (synthetic)"
-    kind: grid
-    camera: sim/hall_700_A_closes
-    features: null            # observed density taken from the forecast file (simulation run on the A100)
-    points: weights/crowdsafe_nb05_report/forecast_sim_points.parquet
-  - id: sim_corridor
-    title: "Simulation — corridor, arrival surge into a bottleneck (synthetic)"
-    kind: grid
-    camera: sim/corr_surge
-    features: null
-    points: weights/crowdsafe_nb05_report/forecast_sim_points.parquet
+- id: cam02
+  title: 'Real CCTV — H705: lecture, class leaves, empty'
+  kind: cctv
+  camera: cam02
+  features: data/features/cctv/cam02.parquet
+  points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
+  frame: data/cctv/audit/cam02_emptiest_t765s.jpg
+  source: Real CCTV video
+  video: data/cctv/web/cam02.mp4
+- id: cam04
+  title: 'Real CCTV — H103 lab: empty, students arrive'
+  kind: cctv
+  camera: cam04
+  features: data/features/cctv/cam04.parquet
+  points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
+  frame: data/cctv/audit/cam04_emptiest_t20s.jpg
+  source: Real CCTV video
+  video: data/cctv/web/cam04.mp4
+- id: cam03
+  title: 'Real CCTV — H706: students studying, leaving at break'
+  kind: cctv
+  camera: cam03
+  features: data/features/cctv/cam03.parquet
+  points: weights/crowdsafe_nb05_report/forecast_cctv_points.parquet
+  frame: data/cctv/audit/cam03_emptiest_t1470s.jpg
+  source: Real CCTV video
+  video: data/cctv/web/cam03.mp4
+- id: julich_corridor
+  title: Real crowd (Jülich corridor experiment, > 5 persons/m²)
+  kind: grid
+  camera: julich_corridor_uni_2013/uni_corr_500_09
+  features: data/features/julich/julich_corridor_uni_2013
+  points: weights/crowdsafe_nb04_report/forecast_julich_points.parquet
+  source: Real measured crowd (Jülich trajectories, no video)
+- id: julich_entrance
+  title: Real crowd (Jülich entrance experiment, up to 9 persons/m²)
+  kind: grid
+  camera: julich_entrance_semicircle/entrance_1
+  features: data/features/julich/julich_entrance_semicircle
+  points: weights/crowdsafe_nb04_report/forecast_julich_points.parquet
+  source: Real measured crowd (Jülich trajectories, no video)
+- id: sim_hall
+  title: Simulation — hall, 700 people, main exit closes (synthetic)
+  kind: grid
+  camera: sim/hall_700_A_closes
+  features: null
+  points: weights/crowdsafe_nb05_report/forecast_sim_points.parquet
+  source: Simulation (JuPedSim, synthetic)
+- id: sim_corridor
+  title: Simulation — corridor, arrival surge into a bottleneck (synthetic)
+  kind: grid
+  camera: sim/corr_surge
+  features: null
+  points: weights/crowdsafe_nb05_report/forecast_sim_points.parquet
+  source: Simulation (JuPedSim, synthetic)

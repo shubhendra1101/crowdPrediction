@@ -171,6 +171,7 @@ python scripts/run_pipeline.py --config configs/cam01.yaml --video data/cctv/cam
 
 # server + dashboard (T8, replay)
 python -m uvicorn crowdsafe.server.app:app --port 8000
+python scripts/make_web_videos.py --videos cam02=data/cctv/cam02.asf   # once per video: MP4 for the dashboard
 npm --prefix dashboard install   # first time only
 npm --prefix dashboard run dev   # then open http://localhost:3000
 ```
