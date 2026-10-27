@@ -199,11 +199,11 @@ videos `cam01–cam04.asf` into `~/crowdsafe_work/data/cctv/`, Run All, download
   Result: 2026-10-26 — A100 (notebook 06, cam02 at real speed): live Chronos-2 median latency 0.49 s (p95 1.6 s), density 159 ms, RAFT 103 ms, Chronos-2 54 ms every 5 s, 94 % of 1-s cycles on time, GPU 2.0 GB; max throughput 4.6x real time. esults/latency_*.md\.
   Result: 2026-10-26 — live pipeline built: \crowdsafe/datasets/live.py\ (real-speed reader, drops frames when slow), \scripts/live_pipeline.py\ (same models/settings, per-stage timing, SQLite log, forecast every 5 s, risk + alerts). Laptop CPU test (cam02, ONNX CLIP-EBC + Farneback): ~19 s per cycle (density 18.7 s; flow 0.3 s; zones/forecast/risk 10–30 ms) → laptop cannot run live. A100 measurement = notebook 06 (user, pending).
   Result:
-- [ ] **T9.3 (AGENT)** Figures: heatmap frame, forecast chart, alert timeline from a run that turns critical.
-  Result: 2026-10-27 — `scripts/paper_figures.py`: pipeline diagram, zone-density heatmaps on the busiest frame of cam02/03/04 (max 1.87 / 1.94 / 1.18 p/m²), forecast fan on sim corridor surge (Chronos-2 bound 2.33→3.09 vs persistence flat 1.8, both < 4 at 30 s lead); alert timelines already exist. Open: dashboard screenshot (USER).
+- [x] **T9.3 (AGENT)** Figures: heatmap frame, forecast chart, alert timeline from a run that turns critical.
+  Result: 2026-10-27 — `scripts/paper_figures.py`: pipeline diagram, zone-density heatmaps on the busiest frame of cam02/03/04 (max 1.87 / 1.94 / 1.18 p/m²), forecast fan on sim corridor surge (Chronos-2 bound 2.33→3.09 vs persistence flat 1.8, both < 4 at 30 s lead); alert timelines already exist. Dashboard screenshot added by user (`results/figures/paper_dashboard.png`).
 - [ ] **T9.4 (AGENT)** Draft methodology and results text from `results/` only; list citations for every model and dataset.
-  Result: 2026-10-26 — first full draft \docs/paper_draft.md\ (abstract → conclusion, 5 tables, figure list, references marked [CHECK]); every number from esults/\.
-  Result:
+  Result: 2026-10-26 — first full draft `docs/paper_draft.md` (abstract → conclusion, 5 tables, figure list, references marked [CHECK]); every number from `results/`.
+  Result: 2026-10-27 — IEEE conference version `docs/paper/main.tex` (IEEEtran, 3 authors, 6 tables, 6 figures) + `refs.bib` (14 refs, verified; 3 still CHECK: Jülich per-experiment DOIs, JuPedSim citation, PedPy year). Not compiled locally (no LaTeX) — compile on Overleaf. Open: check page limit of the chosen IEEE conference.
 - [ ] **T9.5 (USER)** Final review; rehearse the replay demo.
   Result:
 

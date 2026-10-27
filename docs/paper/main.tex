@@ -1,0 +1,286 @@
+% CrowdSafe paper, IEEE conference format (IEEEtran). Every number comes from results/ (see docs/paper_draft.md,
+% which names the source file of each). Compile with pdflatex + bibtex (e.g. on Overleaf: upload this folder).
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+\newcommand{\pmsq}{persons/m$^2$}
+
+\begin{document}
+
+\title{Zone-Level Crowd-Density Forecasting and Early Warning from Uncalibrated Classroom CCTV with Zero-Shot Models}
+
+\author{
+\IEEEauthorblockN{Nidhi Singh}
+\IEEEauthorblockA{KIET Deemed to be University\\
+Ghaziabad, India\\
+nidhi.singh@kiet.edu}
+\and
+\IEEEauthorblockN{Shubhendra Singh}
+\IEEEauthorblockA{KIET Deemed to be University\\
+Ghaziabad, India\\
+shubhendra.2327cseml@kiet.edu}
+\and
+\IEEEauthorblockN{Shruti Mishra}
+\IEEEauthorblockA{KIET Deemed to be University\\
+Ghaziabad, India\\
+shruti.2327cseml1093@kiet.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+Crowd crushes develop within tens of seconds, yet most camera-based crowd monitoring reports only a head count for the whole frame. We present CrowdSafe, a pipeline that turns ordinary fixed CCTV into per-zone crowd density in \pmsq, forecasts it 10--120\,s ahead and raises tiered alerts with hysteresis, without training any component. It combines a zero-shot density model (CLIP-EBC), a full camera model with lens distortion fitted from furniture of known size, RAFT optical flow converted to m/s on the floor plan, and the zero-shot time-series foundation model Chronos-2, whose upper quantile is calibrated by split conformal prediction. We evaluate on four CCTV cameras in three rooms (2.6\,h, 6,715 hand-labelled heads), held-out J\"ulich pedestrian experiments and 16 JuPedSim scenarios. CLIP-EBC counts with a mean absolute error of 2.0--5.1 people per frame, and a learned detector--density fusion does not generalise to unseen rooms. Zone density is estimated within 0.08--0.10\,\pmsq{} of the labels. The calibrated 90\,\% bound holds 89--96\,\% of the time on CCTV and simulations and 84--93\,\% at dangerous moments in the J\"ulich data, where a persistence bound holds only 66--85\,\%. Alerts driven by current density never warn before a zone reaches 4\,\pmsq; forecast-driven alerts warn in time for about one third of simulated events (median 7.5\,s ahead) and one of nine real events. The pipeline runs live on one A100 GPU with 0.49\,s median latency. We report these mixed early-warning results openly and argue that minute-level warning needs information from beyond a single camera view.
+\end{abstract}
+
+\begin{IEEEkeywords}
+crowd density, crowd counting, camera calibration, time-series forecasting, conformal prediction, early warning, CCTV
+\end{IEEEkeywords}
+
+\section{Introduction}
+Crowd disasters are caused by local density, not by the total number of people present. Fruin's levels of service and later analyses place the onset of dangerous conditions at roughly 4--5\,\pmsq, with turbulent ``crowd quakes'' above that~\cite{fruin1971,helbing2007}. Useful monitoring therefore needs (i)~density in physical units per area of floor, (ii)~where in the scene density is building up, and (iii)~enough warning time for staff to act.
+
+Most deployed analytics and most crowd-counting research report people per frame. Converting this to \pmsq{} requires camera calibration, which is rarely available for existing installations. Predicting, rather than detecting, dangerous density needs a forecaster that works without venue-specific training data, because dangerous events are, fortunately, rare.
+
+CrowdSafe is built entirely from pretrained, zero-shot components. Our contributions are:
+\begin{enumerate}
+\item \emph{Calibration from furniture}: a full camera model with radial distortion fitted from desk tops of known length and straight scene edges, validated against independent measurements (row spacing within 3\,\%, door width within 10\,\%, lab table positions within 0.03--0.18\,m).
+\item \emph{A held-out evaluation of counting on real CCTV}, including a negative result: learned detector--density fusion that looks best within one room fails on unseen rooms.
+\item \emph{Zero-shot, conformally calibrated forecasting of zone density}: Chronos-2 gives a reliable worst-case bound where persistence does not.
+\item \emph{An honest early-warning evaluation} with a strict lead-time metric, tests of motion precursors, and an ablation of alert timing.
+\item \emph{A live implementation} with measured per-stage latency on one GPU, and a replay dashboard.
+\end{enumerate}
+
+\section{Related Work}
+\emph{Crowd counting.} Density-map regression became standard with MCNN on ShanghaiTech~\cite{zhang2016mcnn}. CLIP-EBC~\cite{ma2025clipebc} reformulates counting as blockwise classification on a CLIP backbone and reaches state-of-the-art accuracy on NWPU-Crowd; we use it zero-shot. Person and head detectors such as YOLO11~\cite{yolo11} and CrowdHuman-trained models~\cite{shao2018crowdhuman} are accurate in sparse scenes but undercount under occlusion.
+
+\emph{Calibration for crowd analysis.} Counting work commonly maps image points to the floor with a homography, which assumes a pinhole camera and visible floor points. CCTV lenses are wide-angle and classroom floors are hidden by furniture, so we fit lens distortion and map heads through the camera ray to a head-height plane.
+
+\emph{Pedestrian dynamics.} Helbing et al.~\cite{helbing2007} showed that crowd pressure (density times velocity variance) and turbulence precede disasters. The J\"ulich archive~\cite{julich_archive} provides trajectories of controlled experiments at high densities; we analyse them with PedPy~\cite{pedpy} and simulate further scenarios with JuPedSim~\cite{jupedsim}.
+
+\emph{Forecasting and uncertainty.} Chronos~\cite{ansari2024chronos} and Chronos-2~\cite{ansari2025chronos2} are pretrained time-series models that forecast without task-specific training; Chronos-2 additionally shares information across related series. Split conformal prediction gives finite-sample coverage guarantees under exchangeability~\cite{angelopoulos2023conformal}; we use it to calibrate the forecast's upper bound.
+
+\section{Method}
+\subsection{Overview}
+Fig.~\ref{fig:pipeline} shows the pipeline. Every second it (1)~computes a CLIP-EBC density map; (2)~computes RAFT optical flow~\cite{teed2020raft} between the current frame and the frame 0.2\,s later; (3)~projects both through the calibrated camera onto the floor plan and aggregates them per zone into density (\pmsq), mean speed (m/s), speed variance, pressure, direction entropy and counter-flow; (4)~every 5\,s, forecasts each zone's density 10--60\,s ahead (120\,s in simulation); and (5)~assigns a risk level and applies alert hysteresis. The same feature schema is produced from J\"ulich trajectories (matching PedPy to within 0.0000\,\pmsq) and from simulations, so forecasting and alerting are evaluated identically on all three sources.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{pipeline.png}
+\caption{CrowdSafe pipeline. All learned components (CLIP-EBC, RAFT, Chronos-2) are used zero-shot; the camera model is fitted per camera from furniture of known size.}
+\label{fig:pipeline}
+\end{figure*}
+
+\subsection{Counting}
+We compare YOLO11l (COCO persons), a CrowdHuman YOLO11 person+head detector and CLIP-EBC ViT-B/16 with NWPU weights in 224-px sliding windows, all without fine-tuning. As fusion candidates we test a learned per-frame weight from detector-reliability features, a constant weight, a 50/50 average, and a hard switch (detector below a count threshold, density model above it). Regions outside the room (a glass partition in the lab) are excluded from labels and predictions alike.
+
+\subsection{Camera Calibration}
+We fit a pinhole camera with radial distortion ($k_1, k_2$), focal length and pose by robust least squares. In classrooms, desk tops are rectangles of known length (1.00\,m), all parallel and on one plane; each desk has its own unknown floor position, so row and column spacing are not assumed and remain independent checks. Straight scene edges (door frames, ceiling duct, stage edge) add plumb-line constraints that pin the distortion. In the computer lab, long table edges at known lateral positions and vertical edges are used instead. Heads are mapped to the floor through the camera ray at seated head height (1.2\,m; 1.1--1.6\,m tested). Zones are 3$\times$3 seating blocks plus the front aisle, 4--16\,m$^2$ each; zone density is the density-map count inside the zone's image mask divided by the visible zone area (Fig.~\ref{fig:calib}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{calibration_H705.jpg}
+\caption{Fitted camera model for classroom H705. Red: desk tops fitted as 1.00-m rectangles; yellow: 1-m floor grid reprojected through the fitted model with lens distortion.}
+\label{fig:calib}
+\end{figure}
+
+\subsection{Motion}
+RAFT-large flow at 960\,px is averaged per density-map cell. Each cell centre and its displaced position are traced to the head-height plane, giving velocity in m/s, and cells are weighted by the density map so that empty floor contributes nothing. Mean speed, velocity variance, pressure (density $\times$ variance), 8-bin direction entropy and counter-flow share follow the same definitions as the trajectory features.
+
+\subsection{Forecasting and Conformal Calibration}
+All forecasters receive the last 30\,s at 1\,Hz: \emph{persistence} (last value); a \emph{physics} fill-rate model, $\rho + (q_\mathrm{in} - q_\mathrm{out})\,h/A$; \emph{Chronos-2 per zone}; and \emph{Chronos-2 joint}, which forecasts all zones of a camera together. On validation runs only, the 90\,\% upper bound of each model and horizon is shifted by the finite-sample conformal quantile of (target $-$ p90). Data are split by experiment, scenario or camera, never within a run.
+
+\subsection{Risk Levels and Alerts}
+Levels come from the worst calibrated upper bound over the horizons: Low $<2$, Medium 2--4, High 4--5 and Critical $\geq 5$\,\pmsq. Candidate precursors (pressure, direction entropy, counter-flow, flow collapse, slowing, rate of rise) would raise the level by one step; each is kept only if, on validation data, its precision for ``reaches 4\,\pmsq{} within 60\,s'' is at least twice the base rate. An alert is raised when a zone stays at High or above for 10\,s and cleared after 30\,s below.
+
+\subsection{Runtime and Dashboard}
+A background reader keeps only the newest frames and drops frames when processing is slow. A 1-Hz loop runs the steps above and logs every stage's duration. A FastAPI/WebSocket server and a Next.js dashboard replay stored runs with the camera video, zones coloured by level, the forecast band and the alert feed (Fig.~\ref{fig:dashboard}).
+
+\section{Data and Evaluation Protocol}
+Table~\ref{tab:data} lists the data. Counting is scored by mean absolute error (MAE) per frame, density by MAE in \pmsq{} per zone, and forecasts by MAE and the empirical coverage of the calibrated bound. For alerts, an \emph{event} is a zone first reaching 4\,\pmsq{} after monitoring starts. A warning is \emph{in time} if an alert is raised within (longest horizon + 10\,s) before the event and not in the first 15\,s of monitoring; false alarms are alerts with no event within 120\,s, reported per zone-hour. We use this strict metric because a looser version, which credited alerts raised at the start of a run and kept on, inflated the early-warning rate several-fold (Section~\ref{sec:discussion}).
+
+\begin{table}[t]
+\caption{Data Sources}
+\label{tab:data}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.5cm}p{3.9cm}p{2.1cm}@{}}
+\toprule
+Source & Content & Use \\
+\midrule
+Own CCTV & 4 cameras, 3 rooms (classrooms H705, 2 views, and H706; computer lab H103), 2.6\,h; 160 frames, 6,715 labelled heads & counting, density, forecasting, latency \\
+J\"ulich & corridor, bottleneck, entrance experiments; test: uni-directional corridor 2013 + entrance semicircle (10 runs) & forecasting, alerts on real dense crowds \\
+JuPedSim & 16 scenarios, 4 layouts, walking speeds after Weidmann~\cite{weidmann1993}; 5 held-out test scenarios & rare dangerous events (up to 8\,\pmsq) \\
+ShanghaiTech A/B & public benchmark & sanity check of counting weights \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+\subsection{Counting}
+Table~\ref{tab:counting} shows zero-shot counting. The detectors fail under occlusion: in the lab, monitors hide most bodies and YOLO11l misses about 18 people per frame. Within one room (H705, time split), a constant fusion weight reached an MAE of 1.59 and the learned weight 2.09, against 5.30 for CLIP-EBC alone, because the two models happened to err in opposite directions there (+5.1 and $-$6.0 people). Leave-one-room-out reverses this picture (Table~\ref{tab:fusion}): learned fusion does not transfer across rooms. We therefore use CLIP-EBC, with a hard switch to the detector in near-empty scenes.
+
+\begin{table}[t]
+\caption{Zero-Shot Counting, MAE in People per Frame}
+\label{tab:counting}
+\centering
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Model & H705 & H706 & H103 lab & ShanghaiTech \\
+ & (100 fr.) & (30) & (30) & A / B \\
+\midrule
+CLIP-EBC & \textbf{5.10} & \textbf{2.58} & \textbf{1.97} & \textbf{66.95 / 11.66} \\
+YOLO11l & 6.36 & 6.53 & 17.63 & 418.3 / 92.8 \\
+CrowdHuman heads & 8.04 & 6.23 & 28.23 & 374.2 / 70.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\caption{Leave-One-Room-Out Fusion, Mean MAE on the Held-Out Room}
+\label{tab:fusion}
+\centering
+\footnotesize
+\begin{tabular}{@{}lc@{}}
+\toprule
+Method & MAE (people/frame) \\
+\midrule
+Hard switch & \textbf{3.16} \\
+CLIP-EBC alone & 3.22 \\
+50/50 average & 4.48 \\
+Constant weight & 4.56 \\
+Learned fusion & 5.22 \\
+YOLO11l alone & 10.17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Calibration and Zone Density}
+Reprojection errors are 4.2\,px (H705), 3.6\,px (H706) and 4.0\,px (H103). Independent checks: in H705 the fitted row spacing is 0.99\,m against 0.96\,m measured (+3\,\%) and the mean desk-plus-gap 1.69\,m against 1.77\,m ($-5$\,\%; single gaps $-1$ to $-10$\,\%); in H706 desk-plus-gap is 1.78\,m against 1.77\,m and the door width 1.23\,m against 1.12\,m (+10\,\%); in H103 the table edges of the two columns not used in the fit are found within 0.03--0.18\,m. Against the labelled heads, zone-density MAE is 0.101\,\pmsq{} (H705, highest true zone density 1.67), 0.081 (H706, 1.40) and 0.078 (H103, 1.29); 94--98\,\% of labelled heads fall inside a zone, and changing the assumed head height from 1.1 to 1.6\,m changes the MAE by at most 0.03\,\pmsq. Fig.~\ref{fig:heatmap} shows zone densities at the busiest second of the H705 recording; no classroom zone reached 4\,\pmsq{} in any recording.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{heatmap_cam02.jpg}
+\caption{Zone density (\pmsq) at the busiest second of the H705 recording ($t=309$\,s). Fill colour is the density band; all zones are below 2\,\pmsq.}
+\label{fig:heatmap}
+\end{figure}
+
+\subsection{Forecasting}
+Table~\ref{tab:forecast} reports forecast error and the reliability of the calibrated 90\,\% bound. On average error Chronos-2 matches persistence and is slightly better on our CCTV. Its calibrated bound, however, stays near the 90\,\% target exactly when density is critical in the J\"ulich data, where the persistence bound under-covers badly (0.66 at 30\,s). Fig.~\ref{fig:forecast} shows a forecast made 30\,s before a simulated corridor zone first reaches 4\,\pmsq: the Chronos-2 bound rises from 2.33 to 3.09\,\pmsq{} over 10--120\,s while persistence stays flat at 1.65--1.80, yet both stay below 4. The forecaster sees the rise coming without predicting how far it goes.
+
+\begin{table}[t]
+\caption{Forecast MAE (\pmsq) and Coverage of the Calibrated 90\,\% Bound, per Horizon}
+\label{tab:forecast}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Data & Model & MAE & Coverage \\
+\midrule
+CCTV test & Chronos-2 joint & .064/.080/.097 & .90/.91/.89 \\
+(10/30/60\,s) & Persistence & .074/.087/.105 & .92/.93/.91 \\
+\midrule
+J\"ulich test, & Chronos-2 per zone & .38/.56/.73$^\ast$ & .89/.88/.93 \\
+critical targets & Persistence & .39/.57/.71$^\ast$ & .85/.66/.68 \\
+\midrule
+Simulation & Chronos-2 joint & .16/.36/.57/.76 & .94/.92/.91/.96 \\
+test (10/30/ & Persistence & .17/.34/.56/.75 & .89/.88/.87/.93 \\
+60/120\,s) & Physics & .26/.66/1.25/2.32 & .90/.87/.86/.91 \\
+\bottomrule
+\multicolumn{4}{@{}l}{\scriptsize $^\ast$MAE over all test points; coverage only at critical targets.}
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{forecast_sim_corridor.png}
+\caption{Forecast made 30\,s before a simulated corridor zone first reaches 4\,\pmsq. Background bands: 2/4/5\,\pmsq. The calibrated Chronos-2 bound rises but stays below 4; persistence is flat.}
+\label{fig:forecast}
+\end{figure}
+
+\subsection{Early Warning}
+Table~\ref{tab:alerts} gives the share of events warned in time. Alerts driven by current density never warn in time, by construction. Forecast-driven alerts warn for about a third of simulated events, but only seconds ahead, and for one of nine real J\"ulich events (Fig.~\ref{fig:timeline}). Our CCTV contains no events and produced no false alarms over 8.6 zone-hours. Tuned on J\"ulich validation runs only, slowing ($\leq 0.21$\,m/s) reached 3.2$\times$ the base rate (precision 0.47 vs.\ 0.145) and direction entropy 2$\times$, while pressure, counter-flow and flow collapse did not pass; pooled with simulation validation data, no precursor passed, so none is used.
+
+\begin{table}[t]
+\caption{Events (Zone Reaches 4\,\pmsq) Warned in Time, Strict Metric. In Brackets: Median Lead Time; False Alarms per Zone-Hour}
+\label{tab:alerts}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Alert driver & Simulation & J\"ulich & Own CCTV \\
+ & (47 events) & (9 events) & (8.6 zone-h) \\
+\midrule
+Current density & 0\,\% & 0\,\% & no events \\
+Persistence & 0\,\% & 11\,\% & 0 false al. \\
+Physics & 32\,\% (25\,s; 2.1) & 11\,\% (--; 11.9) & -- \\
+Chronos-2 per zone & 34\,\% (7.5\,s; 1.6) & 11\,\% (--; 1.8) & 0 false al. \\
+Chronos-2 joint & 30\,\% (7.5\,s; 1.5) & 11\,\% (--; 0.5) & 0 false al. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{timeline_julich_corridor.png}
+\caption{Alert timeline on a real J\"ulich corridor experiment: observed zone density (black), Chronos-2 calibrated worst case for the next 60\,s (blue), density bands and raised alerts (red).}
+\label{fig:timeline}
+\end{figure}
+
+An ablation of alert timing (persistence and physics; 29 simulated and 9 J\"ulich events) found no variant that helps every method. A shorter forecast history (15\,s) improved physics most in simulation (59 to 62\,\% warned, median lead 25 to 38\,s, false alarms 1.6 to 2.3 per zone-hour). A shorter hold (5\,s) combined with a rate-of-rise precursor and the shorter history raised current-density alerts from 0 to 24\,\% and persistence from 0 to 31\,\% at 0.2 false alarms per zone-hour, but lowered physics to 24\,\%. The shorter hold alone mainly added false alarms, and rate of rise alone had almost no effect. We keep the default (30\,s history, 10\,s hold).
+
+\subsection{Live Latency}
+Table~\ref{tab:latency} reports latency on one shared A100 with camera cam02 played at real speed. The unpaced run processed 908\,s of video in 196\,s (4.6$\times$ real time). Latency includes the 0.2\,s wait for the second frame of the motion pair; rare spikes up to 7\,s came mostly from database writes on the shared server. On a laptop CPU the pipeline needs about 19\,s per second of video, so a GPU is required for live use.
+
+\begin{table}[t]
+\caption{Live Latency on One A100 (cam02)}
+\label{tab:latency}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Run & Median/p95 & CLIP-EBC & RAFT & On time & GPU \\
+\midrule
+Live, Chronos-2 & 0.49/1.6\,s & 159\,ms & 103\,ms & 94\,\% & 2.0\,GB \\
+Live, persistence & 0.39/1.5\,s & 103\,ms & 61\,ms & 94\,\% & 1.5\,GB \\
+Unpaced & 0.36/0.45\,s & 105\,ms & 58\,ms & 99.8\,\% & 2.0\,GB \\
+\bottomrule
+\multicolumn{6}{@{}l}{\scriptsize Forecast time: Chronos-2 54\,ms per 5\,s (live), 40\,ms (unpaced); persistence 6\,ms.}
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.8\textwidth]{dashboard.jpg}
+\caption{Replay dashboard on the H705 recording: camera video with zones coloured by the level of the forecast worst case and labelled with current density, the time bar of peak density, the forecast for the selected zone and the alert feed.}
+\label{fig:dashboard}
+\end{figure*}
+
+\section{Discussion and Limitations}
+\label{sec:discussion}
+\emph{Why warnings are short.} In both the J\"ulich experiments and the simulations, zones go from safe to 4\,\pmsq{} in roughly 10--20\,s. The alert design adds a 5\,s decision step and a 10\,s hold, and the forecaster needs 30\,s of history. From a single camera view, the cause of a surge (arrivals from a corridor, an exit closing) is often outside the frame. Minute-level warning would need upstream information such as entrance cameras, gate counters, schedules or neighbouring-zone inflow.
+
+\emph{Measurement matters.} Our first alert scoring credited alerts raised at the start of a run and simply kept on; it produced early-warning rates of 56\,\% (J\"ulich) and 86\,\% (simulation). The strict metric reduces these to 11\,\% and about one third. We recommend the strict form for future work.
+
+\emph{Precursors.} Crowd pressure and turbulence are documented at disaster densities above 6--7\,\pmsq~\cite{helbing2007}. At the densities available here they did not precede filling-up better than chance. Slowing did on real data but not in simulation, which suggests the simulation model does not reproduce slowing before congestion.
+
+\emph{Limitations.} Calibration is approximate (about $\pm 5$\,\%). Our CCTV contains no dangerous densities, so danger-level evaluation relies on nine real J\"ulich events and on simulation, which follows model rules rather than real behaviour. Latency was measured on a shared GPU with one camera. Head height is assumed (seated). Inflow and outflow are not yet measured from CCTV, so the physics forecaster was evaluated only on trajectories and simulation.
+
+\emph{Ethics and privacy.} The pipeline estimates densities and flow fields only. No identities, faces or tracks are stored, and labels are head points.
+
+\section{Conclusion}
+Zero-shot components are sufficient to turn existing CCTV into calibrated, zone-level crowd density with errors around 0.1\,\pmsq, and to run the full pipeline live on one GPU with sub-second median latency. A conformally calibrated zero-shot forecaster gives a trustworthy worst-case bound where a naive one does not. Turning that bound into early warnings works for about a third of dangerous events in simulation, and only seconds ahead. We see longer warning horizons as a problem of sensing upstream of the camera rather than of the forecaster.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

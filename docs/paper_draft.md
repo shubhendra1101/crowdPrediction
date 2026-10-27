@@ -1,6 +1,8 @@
 # Zone-level crowd-density forecasting and early warning from uncalibrated classroom CCTV with zero-shot models
 
-*Draft v1, 2026-10-26.*
+*Draft v1, 2026-10-26. IEEE conference version (LaTeX, IEEEtran): `docs/paper/main.tex` + `refs.bib` + `figures/`, 2026-10-27; edit that file from now on.*
+
+**Authors:** Nidhi Singh (nidhi.singh@kiet.edu), Shubhendra Singh (shubhendra.2327cseml@kiet.edu), Shruti Mishra (shruti.2327cseml1093@kiet.edu); KIET Deemed to be University.
 
 - **Source of every number:** a file in `results/` (named in brackets). Nothing is estimated by hand.
 - **`[CHECK]`:** a reference detail to verify before submission.
@@ -297,20 +299,12 @@ All figures are made by scripts (`python scripts/paper_figures.py`, `scripts/ale
 5. **Forecast example:** `results/figures/paper_forecast_sim_corridor.png`, the corridor-surge simulation, zone c0_9, forecast made 30 s before the zone first reaches 4 persons/m². The calibrated Chronos-2 bound rises (2.33 / 2.72 / 2.82 / 3.09 persons/m² at 10 / 30 / 60 / 120 s) while persistence stays flat (1.80 / 1.80 / 1.65 / 1.65), but the bound still stays below 4: the forecaster sees the rise coming without predicting how far it goes. This illustrates the short lead times in Table [alerts].
 6. **Alert timelines:** `results/figures/timeline_julich_corridor.png` (real dangerous crowd) and `timeline_cam02.png` (classroom exit, no false alarm).
 7. **Simulation snapshots:** `results/figures/sim_hall_700_A_closes.png`.
-8. **Dashboard screenshot** [TODO: user captures a CCTV run with the video playing, from http://localhost:3000].
+8. **Dashboard screenshot:** `results/figures/paper_dashboard.png` (H705 replay at 3:30; cropped copy without the taskbar in `docs/paper/figures/dashboard.jpg`).
 
-## References (verify all fields before submission)
-- Angelopoulos, A. N., & Bates, S. (2023). Conformal prediction: A gentle introduction. *Foundations and Trends in Machine Learning*. `[CHECK]`
-- Ansari, A. F., et al. (2024). Chronos: Learning the language of time series. *Transactions on Machine Learning Research*. `[CHECK]`
-- Chronos-2 (Amazon, 2025), model card `amazon/chronos-2` and technical report. `[CHECK: exact title and authors]`
-- Forschungszentrum Jülich. Pedestrian Dynamics Data Archive. `[CHECK: per-experiment citations]`
-- Fruin, J. J. (1971). *Pedestrian Planning and Design*. `[CHECK]`
-- Helbing, D., Johansson, A., & Al-Abideen, H. Z. (2007). Dynamics of crowd disasters: An empirical study. *Physical Review E*, 75, 046109. `[CHECK]`
-- JuPedSim, PedPy (software, Forschungszentrum Jülich). `[CHECK: citation format]`
-- Ma, Y., Sanchez, V., & Guha, T. (2024). CLIP-EBC: CLIP can count accurately through enhanced blockwise classification. arXiv. `[CHECK]`
-- Teed, Z., & Deng, J. (2020). RAFT: Recurrent all-pairs field transforms for optical flow. *ECCV*.
-- Ultralytics (2024). YOLO11. `[CHECK]`
-- Weidmann, U. (1993). Transporttechnik der Fussgänger. ETH Zürich (walking-speed distribution used in the simulations). `[CHECK]`
-- Zhang, Y., Zhou, D., Chen, S., Gao, S., & Ma, Y. (2016). Single-image crowd counting via multi-column CNN. *CVPR*.
-- CrowdHuman (Shao et al., 2018) and the `Sharath33/Person` model. `[CHECK]`
-- ByteTrack is not used in the reported results; remove it from the related work if it is not mentioned elsewhere.
+## References
+The verified list (arXiv / DOI / publisher pages, 2026-10-27) is `docs/paper/refs.bib`. Still marked CHECK there:
+- the per-experiment DOIs of the Jülich data sets (corridor 2013, entrance semicircle), from https://ped.fz-juelich.de/da/;
+- the JuPedSim citation (authors / Zenodo DOI);
+- the release year of PedPy v1.5.1.
+
+Corrections found while verifying: CLIP-EBC is published at IEEE ICME 2025 (not only arXiv); Chronos-2 is arXiv:2510.15821 (Ansari et al., 2025); Angelopoulos & Bates is FnT ML 16(4):494–591, doi 10.1561/2200000101. ByteTrack is not cited (not used in the reported results).
