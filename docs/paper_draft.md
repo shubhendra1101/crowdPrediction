@@ -289,12 +289,15 @@ Zero-shot components are sufficient to turn existing CCTV into calibrated, zone-
 ---
 
 ## Figures to include
-1. **Pipeline diagram** [TODO: draw from `architecture.md`].
+All figures are made by scripts (`python scripts/paper_figures.py`, `scripts/alert_timeline.py`, `scripts/calibrate_cameras.py`, `scripts/zone_density.py`, `scripts/sim_preview.py`).
+1. **Pipeline diagram:** `results/figures/paper_pipeline.png`.
 2. **Calibration overlays:** `results/figures/calibration_H705.jpg`, `_H706.jpg`, `_H103.jpg`.
 3. **Zones with labelled heads:** `results/figures/zones_H705.jpg` (or H706, H103).
-4. **Alert timelines:** `results/figures/timeline_julich_corridor.png` (real dangerous crowd) and `timeline_cam02.png` (classroom exit, no false alarm).
-5. **Simulation snapshots:** `results/figures/sim_hall_700_A_closes.png`.
-6. **Dashboard screenshot** [TODO: capture from http://localhost:3000].
+4. **Zone density on the camera image (busiest second of each recording):** `results/figures/paper_heatmap_cam02.jpg` (H705, t = 309 s), `paper_heatmap_cam03.jpg` (H706, t = 1057 s), `paper_heatmap_cam04.jpg` (H103, t = 2134 s). All zones stay below 2 persons/m² (highest per room: H705 1.87, H706 1.94, H103 1.18), i.e. the classrooms never become crowded.
+5. **Forecast example:** `results/figures/paper_forecast_sim_corridor.png`, the corridor-surge simulation, zone c0_9, forecast made 30 s before the zone first reaches 4 persons/m². The calibrated Chronos-2 bound rises (2.33 / 2.72 / 2.82 / 3.09 persons/m² at 10 / 30 / 60 / 120 s) while persistence stays flat (1.80 / 1.80 / 1.65 / 1.65), but the bound still stays below 4: the forecaster sees the rise coming without predicting how far it goes. This illustrates the short lead times in Table [alerts].
+6. **Alert timelines:** `results/figures/timeline_julich_corridor.png` (real dangerous crowd) and `timeline_cam02.png` (classroom exit, no false alarm).
+7. **Simulation snapshots:** `results/figures/sim_hall_700_A_closes.png`.
+8. **Dashboard screenshot** [TODO: user captures a CCTV run with the video playing, from http://localhost:3000].
 
 ## References (verify all fields before submission)
 - Angelopoulos, A. N., & Bates, S. (2023). Conformal prediction: A gentle introduction. *Foundations and Trends in Machine Learning*. `[CHECK]`
