@@ -1,8 +1,8 @@
 # CrowdSafe — project and research report
 
-*2026-10-28. Authors: Nidhi Singh, Shubhendra Singh, Shruti Mishra (KIET Deemed to be University).*
+*Version for discussion, 2026-10-28. Authors: Nidhi Singh, Shubhendra Singh, Shruti Mishra (KIET Deemed to be University).*
 
-This report explains what the system uses, how each part works, why it was chosen over the alternatives, what was measured and what we learned. **Every number comes from a file in `results/`** (named in each section). Nothing is estimated by hand. Values marked *approximate* or *extrapolated* are labelled as such.
+This report explains what the system uses, how each part works, why it was chosen over the alternatives, what was measured and what we learned. **Every number for the new system comes from a file in `results/`** (named in each section). Numbers about the old system come from its repository and are tagged with their source (§2A). Nothing is estimated by hand. Values marked *approximate* or *extrapolated* are labelled as such.
 
 Related documents:
 - `docs/paper/main.tex`: the IEEE paper;
@@ -55,7 +55,7 @@ Related documents:
 
 ## 2A. Why we switched from the old YOLO11m + CSRNet system
 
-**Source of the old system:** the repository https://github.com/Sidharth260905/CrowdSafe (last commit 93b60d4, 27 Aug 2026). It was read and its code inspected, not re-run (see "What is still missing" below).
+**Source of the old system:** the repository https://github.com/Sidharth260905/CrowdSafe (last commit 93b60d4, 27 Aug 2026). It was read and its code inspected, not re-run (see "Limits of this comparison" below).
 
 **How the old numbers are labelled in this section:**
 - **[old README]:** measured by the old project and written in its README, on its own test video, a webcam and ShanghaiTech. Not measured on our CCTV.
@@ -116,7 +116,7 @@ The research question is: *"Will this zone become dangerous in the next minute?"
   - **the YOLO11m count**, which on our footage behaves like the YOLO11l we measured: it undercounts by 6–18 people per frame;
   - **or a CSRNet count of 66 or more**, which is too high for *every* labelled frame.
 - With the old levels (high = 101+ people), **none of our rooms could ever raise an alert**, however packed a corner became. The old system measured the room as a whole, never one zone.
-- This is an argument from the code, not a measurement. The measurement still needs the CSRNet weights (below).
+- This is an argument from the code, not a measurement.
 
 ### Summary: why we switched
 1. **Different question.** The old system answers "how many people are in the picture now?" The project needs "which zone becomes dangerous next?" That requires calibrated m² per zone, motion and forecasting, which the old system did not have.
@@ -129,11 +129,11 @@ The research question is: *"Will this zone become dangerous in the next minute?"
 3. **No early warning.** Our results show that any alarm on the *current* state never warns in time. Only forecast-driven alarms did.
 4. **The old code's design survives where it was right.** The hard switch (detector near empty, density model when crowded) was re-implemented with CLIP-EBC and is the best counting method on unseen rooms (3.16 people per frame, `results/fusion_loco.md`).
 
-### What is still missing for a fully measured comparison
-- **No old numbers on our CCTV.** Running the old pipeline on the same 160 labelled frames needs two weight files that are *not* in the old repository:
-  - `csrnet_official.pth.tar` (124 MB);
-  - `yolo11m.pt` (38.8 MB; auto-downloads from Ultralytics).
-- **With the CSRNet file**, the old counting can be run on CPU in this project and reported as "old system, measured on our data". This is open item §9.
+### Limits of this comparison
+- **Different data.** Old-system numbers come from its own README: its test video, a webcam and ShanghaiTech A. Only the ShanghaiTech A row (66.09 vs 66.95) compares the two systems on the same data.
+- **Not run on our CCTV.** The old repository does not contain its CSRNet weights (`csrnet_official.pth.tar`, 124 MB), so it was not run on our 160 labelled frames. The classroom analysis above is derived from the old code and our measured detector results.
+- **Different hardware for speed.** RTX 3050 vs A100; speeds are listed side by side but are not a like-for-like test.
+- **Follow-up (optional):** if the CSRNet weights are found, the old counting can be measured on our frames on CPU. Nothing else in this report depends on it.
 
 ---
 
@@ -481,10 +481,35 @@ npm --prefix dashboard run dev                   # dashboard at http://localhost
 | ID | Decision | Why |
 |---|---|---|
 | D1 | Python code in a `crowdsafe/` package | Avoid clashing with Hugging Face's `datasets` library |
-| D2 | New project from scratch (old YOLO11m + CSRNet not reused) | New design |
+| D2 | New project from scratch (old YOLO11m + CSRNet not reused) | Old system answered "how many people now", not "which zone becomes dangerous next"; no m², zones, motion or forecast (§2A) |
 | D3 | GPU work as A100 notebooks; models returned as ONNX | The A100 is reachable only through Kubeflow; the laptop has no GPU |
 | D4 | Prefer Hugging Face weights (CLIP-EBC NWPU, CrowdHuman `Sharath33/Person`) | Reproducible downloads |
 | D5 | Mirrors for blocked downloads (RAFT weights checked by SHA-256) | College network blocks some hosts |
 | D6 | Full camera model instead of a floor homography | Lens distortion, hidden floor, heads above the floor |
 | D7 | CLIP-EBC + hard switch; learned fusion reported as negative | Fails on unseen rooms |
 | D8 | Keep alert setting A | No variant better everywhere |
+
+---
+
+## 12. Points for discussion
+
+1. **Is "seconds ahead" acceptable for the paper's claim?**
+   - The data says single-camera warnings come 7.5–25 s early (median), not minutes.
+   - Options:
+     - (a) present it honestly as the main finding (current draft);
+     - (b) add upstream information, such as an entrance camera or a gate counter, as future work.
+2. **Old vs new comparison depth.**
+   - §2A compares on documented numbers and the code.
+   - Is that enough for the panel, or should we try to recover the old CSRNet weights and measure it on our frames?
+3. **Real dangerous densities.**
+   - Our CCTV never exceeds 3.2 persons/m², so danger-level results rest on 9 real Jülich events plus simulation.
+   - A short staged crowding recording in H705 (already calibrated) would strengthen the real-world evidence.
+4. **Live demo.**
+   - The dashboard replays recorded runs.
+   - A live view needs a GPU reachable from the demo machine; the old system's live-streaming code (reconnect, watchdog) could be reused for that.
+5. **Venue beyond classrooms.**
+   - Zones and thresholds were set for classrooms (T2.2, T7.5 open).
+   - Is a corridor or entrance at the college available for one more recording?
+6. **Target venue for the paper.**
+   - IEEE conference format is ready (`docs/paper/main.tex`).
+   - Its page limit decides which figures and tables stay.
