@@ -29,6 +29,7 @@ Related documents:
 
 | Question | Answer | Source |
 |---|---|---|
+| Why not the old YOLO11m + CSRNet plan? | It output only people per frame: no m², no zones, no movement, no forecast. Alarms on the current state warned 0 % of events in time; forecast alerts 34 % (sim) | §2A |
 | How well do we count people on our CCTV? | CLIP-EBC: 2.0–5.1 people per frame error; detectors 6.4–28.2 | `results/counting_zeroshot_*.md` |
 | How accurate is density per zone? | 0.08–0.10 persons/m² error | `results/zone_density.md` |
 | Is the calibration right? | Independent checks within 3–10 % | `results/calibration.md` |
@@ -51,6 +52,65 @@ Related documents:
   Most CCTV analytics report "people in the frame", which says nothing about density on the floor.
 - **No calibration.** Turning pixels into m² needs a camera calibration. Existing installations never have one.
 - **No training data.** Dangerous moments are rare, so a forecaster cannot be trained on the venue's own data. It has to work zero-shot.
+
+## 2A. Why we switched from the old YOLO11m + CSRNet plan
+
+### What the old system was
+- **The starting point:** an earlier CrowdSafe version (described in the original plan, `CrowdSafe Implementation Guide.md`, and in `prompt.md`). The original idea was to extend it.
+- **YOLO11m** detected people.
+- **CSRNet** produced a crowd density map.
+- **A hard switch** combined the two: the detector count when the scene is sparse, the CSRNet count when it is dense.
+- **Output:** one **people-per-frame** number, shown on a Next.js dashboard.
+
+### Why we switched (decision D2)
+1. **The old code was not available to run.** The planned baseline measurement of the old system (task T0.5) could not be done and was dropped.
+2. **The old design could not answer the research question.** The project asks: *"Will this zone become dangerous in the next minute?"* That needs:
+   - density in **persons/m² per zone**;
+   - **movement**;
+   - a **forecast** with a trustworthy worst case.
+
+   The old system produced none of these. A people-per-frame count can tell you a room is full now. It cannot tell you *where* on the floor it is dangerous, or that it is *about to* become dangerous.
+
+### What the old system was missing, and what replaced it
+
+| Need | Old YOLO11m + CSRNet | New CrowdSafe | Evidence for the new part |
+|---|---|---|---|
+| Unit of output | people per frame (whole image) | **persons/m² per floor zone** | zone error 0.08–0.10 persons/m² (`results/zone_density.md`) |
+| Pixels → metres | none | **full camera model** with lens distortion, fitted from desks | independent checks within 3–10 % (`results/calibration.md`) |
+| Where in the room | no | 3×3 seat blocks + aisle, 4–16 m² zones | per-zone heatmaps (`results/figures/paper_heatmap_*.jpg`) |
+| Movement | no | RAFT optical flow → m/s, pressure, direction entropy, counter-flow | used and tested as precursors (`results/alerts_julich.md`) |
+| Prediction | no (reports the present only) | **Chronos-2 zero-shot, 10–120 s ahead** | error 0.064–0.097 persons/m² on CCTV (`results/forecast_cctv.md`) |
+| Uncertainty / worst case | no | **conformal-calibrated 90 % bound** | holds 88–93 % at dangerous moments vs 66–68 % for persistence (`results/forecast_julich_a100.md`) |
+| Alerts | threshold on the current count | risk levels from the forecast worst case + hysteresis (10 s raise / 30 s clear) | `results/alerts_*.md` |
+| Testing on dangerous crowds | not possible (classroom video only) | Jülich real experiments + 16 JuPedSim simulations in the same format | 47 simulated + 9 real events |
+| Live speed measured | — | 0.49 s median latency, 2 GB per camera | `results/latency_live_chronos.md` |
+| Density model | CSRNet (2018; weights trained per dataset) | **CLIP-EBC** (2024/2025; vision–language, NWPU weights, zero-shot) | see the comparison below |
+
+### Old vs new: results we can actually show
+
+The old pipeline itself was never run in this project, so **there is no measured end-to-end result for it**. We compare the parts that we could measure or that have published numbers, and the type of each number is stated.
+
+| Part | Old approach | Result | Number type | New approach | Result (measured by us) |
+|---|---|---|---|---|---|
+| **People detector** on our CCTV, MAE in people per frame | YOLO11m | not measured; the larger **YOLO11l** of the same family scored H705 **6.36**, H706 **6.53**, lab **17.63**, always undercounting (bias −6 to −17) | measured (YOLO11l as the closest stand-in) | CLIP-EBC | H705 **5.10**, H706 **2.58**, lab **1.97** |
+| **Density model** on ShanghaiTech A / B, MAE | CSRNet, trained on each dataset's own training images | **68.2 / 10.6** | *published* (Li et al., CVPR 2018) | CLIP-EBC, never trained on ShanghaiTech (zero-shot, NWPU weights) | **66.95 / 11.66** |
+| **Hard switch** (the old combination idea), mean MAE on an unseen room | detector ↔ CSRNet | not measured | — | detector ↔ CLIP-EBC (old logic, new density model) | **3.16** (best of all methods; `results/fusion_loco.md`) |
+| **Alert on the current state** (all the old system could do) | count threshold, no forecast | not measured on the old system; our *better* version of it (calibrated density per zone, no forecast) warned **0 %** of events in time (simulation 0 of 47, Jülich 0 of 9) | measured (current-density-only variant) | forecast-driven alerts (Chronos-2) | **34 %** of simulated events (median 7.5 s ahead), **11 %** of real Jülich events |
+
+**What this shows:**
+- **Detectors** (the YOLO side of the old system) badly undercount in our rooms: people are hidden behind desks, other students and lab monitors. The density model is 1.2–9× more accurate.
+- **CLIP-EBC vs CSRNet:** on ShanghaiTech, CLIP-EBC matches CSRNet *without ever being trained on it*: better on part A, slightly worse on part B. A model that works zero-shot is what a new camera with no labelled data needs.
+- **The hard-switch idea of the old system survives** and is the best combination on unseen rooms, but with CLIP-EBC instead of CSRNet.
+- **The real gap is forecasting:**
+  - Any alarm based only on the current state never warned in time, even with calibrated per-zone density, which is more than the old system had.
+  - Only forecast-driven alerts gave warnings before the danger level was reached.
+  - This is the main reason the old design could not reach the project goal.
+
+### What is still missing for a full old-vs-new comparison
+- No measured numbers for **YOLO11m** or **CSRNet** on our CCTV, and none for the old pipeline's speed (FPS) or GPU memory.
+- **How to get them** (needs the user's input; see §9):
+  - **(a)** the old repository or its CSRNet weights, plus any old results or screenshots;
+  - **or (b)** approval to add YOLO11m and a CSRNet checkpoint to a short A100 notebook and run them on the same 160 labelled frames.
 
 ---
 
@@ -134,7 +194,7 @@ The table shows mean absolute error in people per frame (`results/counting_zeros
 - **Finding:** learned fusion **does not transfer** to new rooms. It is reported as a negative result, and the system uses CLIP-EBC with the hard switch.
 
 **Not used:**
-- **The old YOLO11m + CSRNet project:** replaced by this design from scratch (D2).
+- **The old YOLO11m + CSRNet project:** replaced by this design from scratch (D2). See §2A for why, and for an old-vs-new comparison.
 - **PET point counter (optional, T3.4):** not run, because CLIP-EBC was already accurate enough and time went to forecasting and alerts.
 - **The ShanghaiTech-A checkpoint of CLIP-EBC:** only available on GitHub. The project rule prefers Hugging Face weights (D4), and the NWPU weights worked well.
 - **Fine-tuning:** not needed. The measured error (2–5 people per frame, 0.1 persons/m²) is small compared with the 2 persons/m² width of the risk bands.
@@ -362,6 +422,7 @@ Screenshot: `results/figures/paper_dashboard.png`.
 | T6.5 / T6.6: Chronos-2 fine-tuning, GRU | optional, not run | Chronos-2 was not weak; no dangerous training data |
 | T7.3: Isolation Forest | optional, not run | Motion signals showed no warning value |
 | T8.1: multi-process runtime | open | The single-process live loop already meets the 1-s budget 94 % of the time |
+| Measured old-system baseline (YOLO11m + CSRNet) | not done | Old code was not available (T0.5 dropped); needs the old repo/weights, or approval for an A100 run (§2A) |
 | Live mode in the dashboard | not built | Would need the A100 reachable from the laptop; the CPU is too slow |
 | T2.2 / T2.4 / T7.5: venue layout, real-venue zones, threshold review | open (USER) | Need a real venue beyond classrooms |
 | Paper: page limit, 3 reference details | open | Waiting for the conference choice and the Jülich/JuPedSim citations |
