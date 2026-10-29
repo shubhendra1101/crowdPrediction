@@ -1,4 +1,4 @@
-"""Paper figures (T9.3): pipeline diagram, zone-density heatmap on a camera frame, forecast fan chart.
+"""Paper figures (T9.3): pipeline diagram, zone-density heatmap on a camera frame, forecast fan chart, alert timeline.
 
     python scripts/paper_figures.py --out results/figures
 
@@ -36,45 +36,90 @@ def band_rgb(d: float) -> tuple[int, int, int]:
 
 
 def pipeline_diagram(out: Path) -> None:
-    """Block diagram of the system (architecture.md §2)."""
-    boxes = [
-        ("CCTV camera\n(fixed, 1 frame/s)", 0.2, 0.75, "#e8eef9"),
-        ("Camera model\n(pinhole + lens distortion,\nfitted to desks / edges)", 3.3, 0.3, "#f2f2f2"),
-        ("CLIP-EBC\ndensity map", 1.75, 0.95, "#e8f5e9"),
-        ("RAFT\noptical flow", 1.75, 0.55, "#e8f5e9"),
-        ("Zones on the floor (m²)\ndensity p/m², speed m/s,\npressure, entropy", 3.3, 0.75, "#fff8e1"),
-        ("Chronos-2 zero-shot\nforecast 10/30/60 s\n+ split conformal bound", 4.85, 0.75, "#fff3e0"),
-        ("Risk engine\nbands 2/4/5 p/m²\non calibrated worst case", 6.4, 0.75, "#fdecea"),
-        ("Alert manager\nraise 10 s / clear 30 s", 6.4, 0.3, "#fdecea"),
-        ("FastAPI + WebSocket\n→ dashboard", 4.85, 0.3, "#ede7f6"),
-    ]
-    w, h = 1.35, 0.32
-    fig, ax = plt.subplots(figsize=(12, 3.6))
-    pos = {}
-    for text, x, y, col in boxes:
-        ax.add_patch(FancyBboxPatch((x, y - h / 2), w, h, boxstyle="round,pad=0.02", fc=col, ec="#555", lw=1))
-        ax.text(x + w / 2, y, text, ha="center", va="center", fontsize=8.5)
-        pos[text.split("\n")[0]] = (x, y)
+    """End-to-end pipeline (paper Fig. 1): blocks, what passes between them, and which parts are evaluation-only.
 
-    def arrow(a: str, b: str, side_a: str = "r", side_b: str = "l") -> None:
-        (xa, ya), (xb, yb) = pos[a], pos[b]
-        pa = {"r": (xa + w, ya), "b": (xa + w / 2, ya - h / 2), "t": (xa + w / 2, ya + h / 2), "l": (xa, ya)}[side_a]
-        pb = {"l": (xb, yb), "t": (xb + w / 2, yb + h / 2), "b": (xb + w / 2, yb - h / 2), "r": (xb + w, yb)}[side_b]
-        ax.add_patch(FancyArrowPatch(pa, pb, arrowstyle="-|>", mutation_scale=12, color="#333", lw=1))
-
-    arrow("CCTV camera", "CLIP-EBC")
-    arrow("CCTV camera", "RAFT")
-    arrow("CLIP-EBC", "Zones on the floor (m²)")
-    arrow("RAFT", "Zones on the floor (m²)")
-    arrow("Camera model", "Zones on the floor (m²)", "t", "b")
-    arrow("Zones on the floor (m²)", "Chronos-2 zero-shot")
-    arrow("Chronos-2 zero-shot", "Risk engine")
-    arrow("Risk engine", "Alert manager", "b", "t")
-    arrow("Alert manager", "FastAPI + WebSocket", "l", "r")
-    ax.set_xlim(0, 7.95)
-    ax.set_ylim(0.05, 1.2)
+    Vector output when `out` ends in .pdf/.svg. Dashed block/arrow = evaluated but not in the deployed zone path.
+    """
+    fig, ax = plt.subplots(figsize=(7.16, 4.9))
+    ax.set_xlim(0, 14.4)
+    ax.set_ylim(-0.55, 9.45)
     ax.axis("off")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
+    fs, fs_t, fs_a = 5.25, 5.9, 5.0
+    col = {"in": "#e8eef9", "vis": "#e8f5e9", "geo": "#f2f2f2", "feat": "#fff8e1", "fc": "#fff3e0",
+           "risk": "#fdecea", "out": "#ede7f6", "eval": "#ffffff"}
+    lab = dict(fontsize=fs_a, style="italic", color="#1f3a68")
+    box = {}
+
+    def b(key, x, y, w, h, title, body, c, dashed=False):
+        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.1", fc=col[c],
+                                    ec="#444", lw=0.7, ls="--" if dashed else "-"))
+        ax.text(x + w / 2, y + h - 0.12, title, ha="center", va="top", fontsize=fs_t, weight="bold")
+        ax.text(x + w / 2, y + h - 0.44, body, ha="center", va="top", fontsize=fs, linespacing=1.2)
+        box[key] = (x, y, w, h)
+
+    def pt(key, side, f=0.5):
+        x, y, w, h = box[key]
+        return {"l": (x, y + f * h), "r": (x + w, y + f * h), "t": (x + f * w, y + h), "b": (x + f * w, y)}[side]
+
+    def arr(p0, p1, dashed=False, rad=0.0):
+        ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=7, color="#222", lw=0.7,
+                                     ls="--" if dashed else "-", connectionstyle=f"arc3,rad={rad}", shrinkA=0.5, shrinkB=0.5))
+
+    def note(x, y, text, ha="center", va="center"):
+        ax.text(x, y, text, ha=ha, va=va, **lab)
+
+    # inputs
+    b("cctv", 0.3, 7.95, 2.6, 1.05, "CCTV video", "fixed camera\n1080p, 25 fps", "in")
+    b("admin", 6.4, 7.95, 7.7, 1.05, "Administrator configuration",
+      "measured desk/table sizes, camera height · floor zone polygons (m) · exclusion masks\n"
+      "risk bands 2 / 4 / 5 persons/m² · alert hold 10 s, clear 30 s", "in")
+    # per-frame vision: sampling (top-left), RAFT under it, CLIP-EBC right of sampling
+    b("samp", 0.3, 6.15, 2.6, 0.95, "Frame sampling", "1 frame/s + partner frame\n0.2 s later; exclusion mask", "vis")
+    b("raft", 0.3, 5.0, 2.6, 0.85, "RAFT optical flow", "pretrained, 960 px", "vis")
+    b("clip", 3.7, 5.0, 2.8, 2.1, "CLIP-EBC ViT-B/16", "zero-shot, NWPU weights;\n224-px sliding windows\n→ density map D_t\n(persons per cell)", "vis")
+    b("yolo", 7.1, 5.75, 2.6, 1.35, "YOLO11l + switch", "detector count used\nwhen density count < τ;\nframe-level evaluation only", "eval", dashed=True)
+    b("cam", 10.0, 5.0, 4.1, 2.1, "Camera model (fitted offline)",
+      "pinhole + radial distortion k1, k2,\nfitted to desk tops and straight edges;\n→ zone masks M_z, visible area A_z (m²),\npixel → floor at head height 1.2 m", "geo")
+    # zone features
+    b("agg", 0.3, 2.75, 6.0, 1.6, "Zone aggregation (zone z, second t)",
+      "count c = sum of D_t inside M_z;   density ρ = c / A_z\nflow traced to the floor → speed (m/s), speed variance,\npressure ρ·var, direction entropy, counter-flow", "feat")
+    b("table", 6.9, 2.75, 3.4, 1.6, "Zone feature table",
+      "one row per (camera, z, t):\ncount, density, speed, variance,\npressure, entropy, counter-flow,\ninflow*, outflow*, source", "feat")
+    b("trajf", 10.9, 2.75, 3.2, 1.6, "Trajectory data",
+      "Jülich (measured) and\nJuPedSim (simulated) runs\n→ 2-m cells, same columns;\ninflow/outflow from crossings", "in")
+    # forecast -> alert
+    w6, gap = 2.08, 0.32
+    xs = [0.3 + i * (w6 + gap) for i in range(6)]
+    for key, title, body, c, x in (
+            ("win", "Forecast window", "last 30 s per zone\nat 1 Hz; live: 1-s\ngrid, gaps\nforward-filled", "fc", xs[0]),
+            ("fc", "Forecasters", "Chronos-2, zero-shot:\nper zone (+ motion\ncovariates) or joint;\npersistence, physics*", "fc", xs[1]),
+            ("conf", "Conformal bound", "U_h = p90_h + q_h;\nq_h fitted on the\nvalidation split", "fc", xs[2]),
+            ("risk", "Risk level", "band of max(U_h, ρ):\nLow / Medium /\nHigh / Critical;\nprecursors tested,\nnot used", "risk", xs[3]),
+            ("alert", "Alert manager", "raise: ≥ High for 10 s\nclear: < High for 30 s;\nreason text,\ntime-to-critical", "risk", xs[4]),
+            ("outp", "Outputs", "alert events;\nstage log (live run);\nFastAPI/WebSocket\n→ replay dashboard", "out", xs[5])):
+        b(key, x, 0.4, w6, 1.7, title, body, c)
+
+    # arrows and data labels
+    arr(pt("cctv", "b"), pt("samp", "t")); note(1.75, 7.55, "video frames", ha="left")
+    arr(pt("admin", "b", 0.72), pt("cam", "t", 0.55)); note(12.4, 7.55, "measurements, polygons", ha="left")
+    arr(pt("samp", "r", 0.5), pt("clip", "l", 0.77)); note(3.3, 6.86, "frame I_t")
+    arr(pt("samp", "b", 0.5), pt("raft", "t", 0.5)); note(1.75, 5.99, "pair (I_t, I_t+0.2 s)", ha="left")
+    arr(pt("clip", "r", 0.8), pt("yolo", "l", 0.6), dashed=True); note(6.8, 6.25, "frame\ncount")
+    arr(pt("raft", "b", 0.5), pt("agg", "t", 0.25)); note(1.75, 4.65, "flow F_t (px/frame pair)", ha="left")
+    arr(pt("clip", "b", 0.5), pt("agg", "t", 0.77)); note(4.95, 4.65, "D_t", ha="left")
+    arr(pt("cam", "b", 0.1), pt("agg", "t", 0.98)); note(8.6, 4.8, "M_z, A_z, pixel → floor map", ha="left")
+    arr(pt("agg", "r", 0.4), pt("table", "l", 0.4)); note(6.6, 3.82, "rows")
+    arr(pt("trajf", "l", 0.4), pt("table", "r", 0.4)); note(10.6, 3.82, "rows")
+    arr(pt("table", "b", 0.5), pt("win", "t", 0.6), rad=-0.1); note(5.0, 2.55, "time-indexed zone series", ha="left")
+    chain = ["win", "fc", "conf", "risk", "alert", "outp"]
+    labels = ["context", "p10/p50/p90 at h", "bound U_h", "level", "alert event"]
+    for i in range(5):
+        arr(pt(chain[i], "r", 0.55), pt(chain[i + 1], "l", 0.55))
+        note(xs[i] + w6 + gap / 2, 0.18, labels[i], va="top")
+    ax.text(0.3, -0.5, "* inflow/outflow exist only for trajectory data (missing for CCTV); the physics forecaster is "
+            "evaluated only there.\nDashed: evaluated, not part of the zone path.   Horizons h = 10, 30, 60 s "
+            "(also 120 s in simulation).", fontsize=4.9, ha="left", va="bottom", color="#555", linespacing=1.3)
+    fig.savefig(out, bbox_inches="tight", dpi=300)
     plt.close(fig)
 
 
@@ -167,11 +212,91 @@ def forecast_fan(run_id: str, out: Path, model: str = "chronos2_joint", baseline
     return info
 
 
+def alert_timeline(features: Path, points: Path, timelines: Path, run: str, zones: list[str], out: Path,
+                   variant: str = "chronos2_per_zone upper bound", model: str = "chronos2_per_zone",
+                   event_density: float = 4.0, window_s: float = 70.0, warmup_s: float = 15.0) -> list[dict]:
+    """Alert timeline from stored evaluation outputs (paper Fig. 3): observed density, the calibrated worst-case bound,
+    the event threshold and event time, alert raise times and whether each event counts as warned in time.
+
+    Uses the same rule as scripts/eval_alerts.py `score`: an event is the first second at or above `event_density`
+    after monitoring starts; it is warned in time if an alert was raised within `window_s` before it and later than
+    `warmup_s` after monitoring started."""
+    import pandas as pd
+    from crowdsafe.features.logger import read_features
+
+    f = read_features(features)
+    f = f[f["camera_id"] == run]
+    p = pd.read_parquet(points)
+    p = p[(p["camera_id"] == run) & (p["model"] == model)]
+    ub = p.assign(u=p["p90_cal"].fillna(p["p90"])).groupby(["zone_id", "origin"])["u"].max().reset_index()
+    tl = pd.read_csv(timelines)
+    tl = tl[(tl["camera_id"] == run) & (tl["variant"] == variant)]
+    start = float(tl[tl["zone_id"].isna()]["monitor_start"].iloc[0])
+    al = tl[tl["zone_id"].notna()]
+    fig, axes = plt.subplots(len(zones), 1, figsize=(3.5, 1.15 * len(zones) + 0.35), sharex=True)
+    axes = np.atleast_1d(axes)
+    info = []
+    ymax = 9.0
+    for ax, z in zip(axes, zones):
+        for lo, hi, c in BAND_FILL:
+            ax.axhspan(lo, min(hi, ymax), color=c, zorder=0, lw=0)
+        ax.axvspan(0, start + warmup_s, color="#bbbbbb", alpha=0.35, lw=0, zorder=1)
+        g = f[f["zone_id"] == z].sort_values("timestamp")
+        ax.plot(g["timestamp"], g["density"], color="black", lw=0.8, label="observed density", zorder=3)
+        u = ub[ub["zone_id"] == z].sort_values("origin")
+        ax.plot(u["origin"], u["u"], color="tab:blue", lw=0.9, label="calibrated upper bound (max over h)", zorder=3)
+        ax.axhline(event_density, color="#7a3e00", lw=0.6, ls="--", zorder=2)
+        hi = g.loc[(g["density"] >= event_density) & (g["timestamp"] >= start), "timestamp"]
+        ev = float(hi.min()) if len(hi) else None
+        za = np.sort(al[al["zone_id"] == z]["since"].to_numpy(float))
+        for s in za:
+            ax.axvline(s, color="red", lw=1.0, zorder=4)
+        if ev is not None:
+            ax.axvline(ev, color="green", lw=1.0, ls=":", zorder=4)
+            before = za[za <= ev]
+            strict = before[(before >= ev - window_s) & (before > start + warmup_s)]
+            early = before[(before < ev - window_s) & (before > start + warmup_s)]
+            if len(strict):
+                verdict = f"warned in time ({ev - strict.min():.0f} s ahead)"
+            elif len(early):
+                verdict = f"not in time: alert {ev - early.max():.0f} s before (> {window_s:.0f} s)"
+            elif len(before):
+                verdict = "alert only in warm-up: not counted"
+            elif len(za[(za > ev) & (za <= ev + 30)]):
+                verdict = f"late: alert {za[za > ev].min() - ev:.0f} s after event"
+            else:
+                verdict = "missed"
+        else:
+            verdict = "no event"
+        info.append({"zone": z, "event_s": ev, "alerts_s": za.tolist(), "verdict": verdict})
+        ax.text(0.99, 0.93, f"zone {z}: {verdict}", transform=ax.transAxes, ha="right", va="top", fontsize=5.8,
+                bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+        ax.set_ylim(0, ymax)
+        ax.set_ylabel("p/m²", fontsize=6)
+        ax.tick_params(labelsize=5.5)
+    axes[-1].set_xlabel("time in run (s)", fontsize=6)
+    handles = [plt.Line2D([], [], color="black", lw=0.8), plt.Line2D([], [], color="tab:blue", lw=0.9),
+               plt.Line2D([], [], color="#7a3e00", lw=0.6, ls="--"), plt.Line2D([], [], color="green", lw=1, ls=":"),
+               plt.Line2D([], [], color="red", lw=1), plt.Rectangle((0, 0), 1, 1, color="#bbbbbb", alpha=0.35)]
+    fig.legend(handles, ["observed density", "calibrated upper bound", "event threshold 4 p/m²", "event (first ≥ 4)",
+                         "alert raised", "before forecasts + 15 s warm-up"], loc="upper center", ncol=3, fontsize=5.2,
+               frameon=False, bbox_to_anchor=(0.5, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.9), h_pad=0.3)
+    fig.savefig(out, bbox_inches="tight", dpi=300)
+    plt.close(fig)
+    return info
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=Path("results/figures"))
     ap.add_argument("--heatmap-runs", nargs="*", default=["cam02", "cam03", "cam04"])
     ap.add_argument("--forecast-run", default="sim_corridor")
+    ap.add_argument("--timeline-features", default="data/features/julich")
+    ap.add_argument("--timeline-points", default="weights/crowdsafe_nb04_report/forecast_julich_points.parquet")
+    ap.add_argument("--timeline-csv", default="results/alerts_julich_timelines.csv")
+    ap.add_argument("--timeline-run", default="julich_corridor_uni_2013/uni_corr_500_09")
+    ap.add_argument("--timeline-zones", nargs="*", default=["c3_2", "c2_3", "c4_3"])
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     pipeline_diagram(a.out / "paper_pipeline.png")
@@ -181,6 +306,12 @@ def main() -> int:
         print("wrote", a.out / f"paper_heatmap_{run}.jpg", f"t={t:.0f}s")
     info = forecast_fan(a.forecast_run, a.out / f"paper_forecast_{a.forecast_run}.png")
     print("wrote", a.out / f"paper_forecast_{a.forecast_run}.png", info)
+    pipeline_diagram(a.out / "paper_pipeline.pdf")
+    print("wrote", a.out / "paper_pipeline.pdf")
+    for ext in ("pdf", "png"):
+        info = alert_timeline(Path(a.timeline_features), Path(a.timeline_points), Path(a.timeline_csv), a.timeline_run,
+                              a.timeline_zones, a.out / f"paper_alert_timeline.{ext}")
+    print("wrote", a.out / "paper_alert_timeline.pdf", info)
     return 0
 
 

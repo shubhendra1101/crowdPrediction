@@ -62,7 +62,7 @@ Files: `results/calibration.md`, `results/figures/calibration_*.jpg`.
 | Data | Chronos-2 error (people/m²) | Chronos-2 upper limit held | Persistence upper limit held |
 |---|---|---|---|
 | Own CCTV, test cameras (10–60 s ahead) | **0.064–0.097** (lowest) | 89–91 % | 91–93 % |
-| Jülich, real crowds (10–60 s) | 0.37–0.74 (≈ persistence) | 84–93 % at dangerous moments | 66–85 % |
+| Jülich, real crowds (10–60 s) | 0.37–0.74 (≈ persistence) | 84–93 % of all test forecasts (76–88 % where density ≥ 4) | 66–85 % (56–78 % where density ≥ 4) |
 | Simulations (10–120 s) | 0.16–0.77 (≈ persistence) | 91–96 % | 87–93 % |
 
 **Files:**

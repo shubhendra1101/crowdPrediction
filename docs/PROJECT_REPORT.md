@@ -93,7 +93,7 @@ The research question is: *"Will this zone become dangerous in the next minute?"
 | Where in the room | no | 3×3 seat blocks + aisle | `results/figures/paper_heatmap_*.jpg` |
 | Movement | ByteTrack tracks, used only for drawing and counting | RAFT flow → m/s, pressure, entropy, counter-flow | tested as warning signs [ours] (`results/alerts_julich.md`) |
 | Prediction | none: reports the present only [old code] | Chronos-2, 10–120 s ahead | `results/forecast_*.md` |
-| Worst case / uncertainty | none; the README itself says counts carry **about ±50 %** on footage without labels [old README] | conformal 90 % bound, holding 88–93 % at dangerous moments [ours] | `results/forecast_julich_a100.md` |
+| Worst case / uncertainty | none; the README itself says counts carry **about ±50 %** on footage without labels [old README] | conformal 90 % bound: holds 84–93 % of Jülich test forecasts; 76–88 % where the true density is ≥ 4 persons/m² (persistence 56–78 %) [ours] | `results/forecast_julich_a100.md`, `results/coverage_by_density_julich.md` |
 | Tested on dangerous crowds | no | Jülich real experiments + 16 simulations | 9 + 47 events [ours] |
 
 ### Old vs new: numbers
@@ -101,7 +101,7 @@ The research question is: *"Will this zone become dangerous in the next minute?"
 | Measure | Old system | New system |
 |---|---|---|
 | Density model on ShanghaiTech A, MAE | CSRNet **66.09** at the deployed input size, 66.46 at native size [old README]; 68.2 [published, CSRNet paper] | CLIP-EBC **66.95** [ours], zero-shot: never trained on ShanghaiTech |
-| Near-empty scene | **one person read as 11–12 people** by CSRNet [old README]; handled with the 66-person trust floor | hard switch to the detector in near-empty scenes; below 20 people the head detector errs by **0.86 people** on H705 [ours] |
+| Near-empty scene | **one person read as 11–12 people** by CSRNet [old README]; handled with the 66-person trust floor | below 20 people the head detector errs by **0.86 people** on H705 [ours]; a hard switch to the detector was tested at frame level (best on unseen rooms, 3.16 vs 3.22) but the zone pipeline uses the CLIP-EBC density map only |
 | Per-image reliability | CSRNet predictions range **0.59× to 1.73×** the true count on ShanghaiTech A [old README] | per-frame MAE 2.0–5.1 people on our labelled CCTV [ours] |
 | Dependence on camera resolution | the same frame read **108 → 197 people** as the input grew from 640×360 to 2560×1440: a **1.8× swing with no plateau** [old README]; fixed by resizing to 1024×768, which makes counts *repeatable but not calibrated* | the camera model converts the count to m² per zone using the real geometry, checked against tape-measured distances [ours]; CLIP-EBC's resolution sensitivity was *not* tested |
 | Dense-scene detector | YOLO11m reads **about 27 where CSRNet reads about 185** [old README] | YOLO11l (larger, same family) misses 6–18 people per frame in our rooms [ours]; detectors are used only near empty |
@@ -127,7 +127,7 @@ The research question is: *"Will this zone become dangerous in the next minute?"
 
    CLIP-EBC matches CSRNet's accuracy on ShanghaiTech A (66.95 vs 66.09) *without* being trained on it, and is measured at 2–5 people per frame on our labelled classrooms.
 3. **No early warning.** Our results show that any alarm on the *current* state never warns in time. Only forecast-driven alarms did.
-4. **The old code's design survives where it was right.** The hard switch (detector near empty, density model when crowded) was re-implemented with CLIP-EBC and is the best counting method on unseen rooms (3.16 people per frame, `results/fusion_loco.md`).
+4. **The old code's design survives where it was right.** The hard switch (detector near empty, density model when crowded) was re-implemented with CLIP-EBC and is the best frame-level counting method on unseen rooms (3.16 vs 3.22 people per frame, `results/fusion_loco.md`). Zone density needs a spatial map, so the zone pipeline uses the CLIP-EBC density map alone.
 
 ### Limits of this comparison
 - **Different data.** Old-system numbers come from its own README: its test video, a webcam and ShanghaiTech A. Only the ShanghaiTech A row (66.09 vs 66.95) compares the two systems on the same data.
@@ -199,7 +199,7 @@ The table shows mean absolute error in people per frame (`results/counting_zeros
 - Detectors only count people they can see as a box. In packed rows and behind lab monitors, most bodies are hidden. In the lab, YOLO11l misses about 18 people per frame.
 - They always undercount: the bias is −6 to −17 people.
 - Tiling (cutting the image into smaller pieces, `InferenceSlicer`) did not help on ShanghaiTech (421.7 vs 418.3), so it was not used.
-- Detectors **are** slightly better in nearly empty scenes. With fewer than 20 people in H705, the CrowdHuman heads model errs by 0.86 against 1.15 for CLIP-EBC. This is why the final design switches to the detector when the room is almost empty (the "hard switch").
+- Detectors **are** slightly better in nearly empty scenes. With fewer than 20 people in H705, the CrowdHuman heads model errs by 0.86 against 1.15 for CLIP-EBC. This motivated the "hard switch" (detector count when the density count is below τ ≈ 26–32 people). It is evaluated at frame level only; the zone pipeline uses the CLIP-EBC density map, because zone density needs a spatial map.
 
 **Detector + density fusion (tested, rejected; decision D7).** We tested four ways to combine YOLO and CLIP-EBC: a learned per-frame weight, a constant weight, a 50/50 average and a hard switch.
 - **Within one room** (H705, first half used for fitting, second half for testing), fusion looked excellent: constant weight 1.59 and learned 2.09, against 5.30 for CLIP-EBC alone (`results/fusion_ablation.md`). This happened only because the two models made opposite errors there, +5.1 and −6.0 people.
@@ -214,7 +214,7 @@ The table shows mean absolute error in people per frame (`results/counting_zeros
   | Learned fusion | 5.22 |
   | YOLO11l alone | 10.17 |
 
-- **Finding:** learned fusion **does not transfer** to new rooms. It is reported as a negative result, and the system uses CLIP-EBC with the hard switch.
+- **Finding:** learned fusion **does not transfer** to new rooms. It is reported as a negative result. The hard switch is marginally best at frame level (3.16 vs 3.22); the zone pipeline uses the CLIP-EBC density map.
 
 **Not used:**
 - **The old YOLO11m + CSRNet project:** replaced by this design from scratch (D2). See §2A for why, and for an old-vs-new comparison.
@@ -304,7 +304,7 @@ All calibrations are labelled **approximate (about ±5 %)**.
 | Own CCTV, test cameras | Chronos-2 joint | **0.064 / 0.080 / 0.097** | 0.90 / 0.91 / 0.89 |
 | | Chronos-2 per zone | 0.067 / 0.081 / 0.099 | 0.905 / 0.904 / 0.895 |
 | | Persistence | 0.074 / 0.087 / 0.105 | 0.92 / 0.93 / 0.91 |
-| Jülich test (bound measured at critical moments) | Chronos-2 per zone | 0.38 / 0.56 / 0.73 | **0.89 / 0.88 / 0.93** |
+| Jülich test (all test forecasts) | Chronos-2 per zone | 0.38 / 0.56 / 0.73 | **0.89 / 0.88 / 0.93** |
 | | Persistence | 0.39 / 0.57 / 0.71 | 0.85 / 0.66 / 0.68 |
 | Simulation test | Chronos-2 joint | 0.16 / 0.36 / 0.57 / 0.76 | 0.94 / 0.92 / 0.91 / 0.96 |
 | | Persistence | 0.17 / 0.34 / 0.56 / 0.75 | 0.89 / 0.88 / 0.87 / 0.93 |
@@ -312,7 +312,8 @@ All calibrations are labelled **approximate (about ±5 %)**.
 
 **Findings:**
 - **On average error,** Chronos-2 is about equal to persistence; it is slightly better on our CCTV.
-- **On the worst case,** which is what matters for safety, Chronos-2 is clearly better. At dangerous moments in real Jülich crowds its bound holds 88–93 % of the time, while persistence drops to 66–68 %.
+- **On the worst case,** which is what matters for safety, Chronos-2 is clearly better. Over all Jülich test forecasts its bound holds 88–93 % (per zone), while persistence drops to 66–68 % at 30–60 s. Where the true density is ≥ 4 persons/m², every model falls below 90 %, but Chronos-2 still holds 76–88 % against 56–78 % for persistence (`results/coverage_by_density_julich.md`, computed from the stored forecasts).
+- **Correction (2026-10-29):** earlier versions called the 88–93 % figure "coverage at dangerous moments"; it is coverage over all test forecasts.
 - **Physics** needs measured inflow and outflow. Its error grows fast with the horizon, so it is not used on CCTV.
 - **Example** (`results/figures/paper_forecast_sim_corridor.png`): 30 s before a corridor zone reaches 4 persons/m², the Chronos-2 bound rises from 2.33 to 3.09 while persistence stays flat (1.65–1.80). The model sees the rise coming but not how high it goes.
 
@@ -357,7 +358,7 @@ All calibrations are labelled **approximate (about ±5 %)**.
 **Crowd-motion warning signs ("precursors"), tested and rejected:**
 - Each sign is kept only if it predicts "reaches 4 persons/m² within 60 s" at least **twice as well as chance**.
 - On Jülich validation alone:
-  - slowing down (≤ 0.21 m/s) reached 3.2× the base rate;
+  - slowing down (≤ 0.21 m/s) reached precision 0.54 against a base rate of 0.145 (3.75×; an earlier "3.2×" mixed up F1 and precision);
   - direction entropy reached 2×;
   - crowd pressure, counter-flow and flow collapse failed.
 - Pooled with simulation, **no sign passed**, so none is used.
@@ -405,7 +406,7 @@ Screenshot: `results/figures/paper_dashboard.png`.
 1. **Zero-shot density counting works on real classroom CCTV;** detectors do not. CLIP-EBC errs by 2–5 people per frame, while detectors miss up to 18 people per frame behind furniture.
 2. **Learned detector–density fusion is a trap.** It looks best within one room but is worst on new rooms. A held-out-room test is essential.
 3. **Calibration from furniture works.** A camera model fitted to desks gives density within 0.1 persons/m², checked against measurements it did not use.
-4. **A calibrated zero-shot forecaster gives an honest worst case.** At dangerous moments in real crowds, Chronos-2's bound holds about 90 % of the time; persistence's holds about 66 %.
+4. **A calibrated zero-shot forecaster gives an honest worst case.** On Jülich test runs Chronos-2's bound holds 88–93 % of forecasts (persistence 66–85 %); where density is ≥ 4 persons/m², 76–88 % (persistence 56–78 %).
 5. **Warnings come seconds ahead, not minutes.** Zones fill in 10–20 s. Forecasts warn for about 1 in 3 simulated events (median 7.5 s; physics 25 s). Alerts on current density never warn in time.
 6. **Crowd-motion "precursors" did not help** at the densities available (up to 8–9 persons/m²).
 7. **How you score alerts matters.** A loose metric gave 56 % (Jülich) and 86 % (simulation) "early warnings". The strict metric gives 11 % and about 33 %. The loose numbers were withdrawn.
@@ -486,7 +487,7 @@ npm --prefix dashboard run dev                   # dashboard at http://localhost
 | D4 | Prefer Hugging Face weights (CLIP-EBC NWPU, CrowdHuman `Sharath33/Person`) | Reproducible downloads |
 | D5 | Mirrors for blocked downloads (RAFT weights checked by SHA-256) | College network blocks some hosts |
 | D6 | Full camera model instead of a floor homography | Lens distortion, hidden floor, heads above the floor |
-| D7 | CLIP-EBC + hard switch; learned fusion reported as negative | Fails on unseen rooms |
+| D7 | CLIP-EBC density map for zones; hard switch best at frame level; learned fusion reported as negative | Fails on unseen rooms |
 | D8 | Keep alert setting A | No variant better everywhere |
 
 ---

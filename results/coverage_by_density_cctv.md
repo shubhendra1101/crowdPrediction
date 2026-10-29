@@ -1,0 +1,15 @@
+# Coverage of the calibrated 90 % bound by true density: cctv
+
+From stored test forecast points `weights/crowdsafe_nb05_report/forecast_cctv_points.parquet` (no model re-run). `cover_all` = share of test points with target <= p90_cal; `cover_geX` = same, only points whose true future density is >= X persons/m²; `n_*` = number of points.
+
+| model | horizon_s | n_all | cover_all | n_ge2 | cover_ge2 | n_ge4 | cover_ge4 | n_ge5 | cover_ge5 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chronos2_joint | 10 | 6190 | 0.903 | 0 |  | 0 |  | 0 |  |
+| chronos2_joint | 30 | 6110 | 0.907 | 0 |  | 0 |  | 0 |  |
+| chronos2_joint | 60 | 5990 | 0.891 | 0 |  | 0 |  | 0 |  |
+| chronos2_per_zone | 10 | 6190 | 0.905 | 0 |  | 0 |  | 0 |  |
+| chronos2_per_zone | 30 | 6110 | 0.904 | 0 |  | 0 |  | 0 |  |
+| chronos2_per_zone | 60 | 5990 | 0.895 | 0 |  | 0 |  | 0 |  |
+| persistence | 10 | 6190 | 0.919 | 0 |  | 0 |  | 0 |  |
+| persistence | 30 | 6110 | 0.925 | 0 |  | 0 |  | 0 |  |
+| persistence | 60 | 5990 | 0.911 | 0 |  | 0 |  | 0 |  |

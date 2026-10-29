@@ -1,0 +1,22 @@
+# Coverage of the calibrated 90 % bound by true density: sim
+
+From stored test forecast points `weights/crowdsafe_nb05_report/forecast_sim_points.parquet` (no model re-run). `cover_all` = share of test points with target <= p90_cal; `cover_geX` = same, only points whose true future density is >= X persons/m²; `n_*` = number of points.
+
+| model | horizon_s | n_all | cover_all | n_ge2 | cover_ge2 | n_ge4 | cover_ge4 | n_ge5 | cover_ge5 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| chronos2_joint | 10 | 8200 | 0.937 | 1864 | 0.819 | 1264 | 0.843 | 943 | 0.821 |
+| chronos2_joint | 30 | 7560 | 0.923 | 1733 | 0.787 | 1166 | 0.816 | 869 | 0.84 |
+| chronos2_joint | 60 | 6720 | 0.913 | 1514 | 0.733 | 1019 | 0.771 | 753 | 0.806 |
+| chronos2_joint | 120 | 5040 | 0.963 | 969 | 0.825 | 661 | 0.818 | 514 | 0.86 |
+| chronos2_per_zone | 10 | 8200 | 0.935 | 1864 | 0.815 | 1264 | 0.842 | 943 | 0.815 |
+| chronos2_per_zone | 30 | 7560 | 0.909 | 1733 | 0.759 | 1166 | 0.804 | 869 | 0.809 |
+| chronos2_per_zone | 60 | 6720 | 0.905 | 1514 | 0.721 | 1019 | 0.764 | 753 | 0.784 |
+| chronos2_per_zone | 120 | 5040 | 0.945 | 969 | 0.755 | 661 | 0.738 | 514 | 0.757 |
+| persistence | 10 | 8200 | 0.89 | 1864 | 0.714 | 1264 | 0.71 | 943 | 0.72 |
+| persistence | 30 | 7560 | 0.875 | 1733 | 0.683 | 1166 | 0.694 | 869 | 0.708 |
+| persistence | 60 | 6720 | 0.869 | 1514 | 0.615 | 1019 | 0.615 | 753 | 0.633 |
+| persistence | 120 | 5040 | 0.93 | 969 | 0.672 | 661 | 0.625 | 514 | 0.615 |
+| physics | 10 | 8200 | 0.9 | 1864 | 0.775 | 1264 | 0.776 | 943 | 0.778 |
+| physics | 30 | 7560 | 0.874 | 1733 | 0.703 | 1166 | 0.726 | 869 | 0.739 |
+| physics | 60 | 6720 | 0.864 | 1514 | 0.649 | 1019 | 0.679 | 753 | 0.712 |
+| physics | 120 | 5040 | 0.909 | 969 | 0.673 | 661 | 0.673 | 514 | 0.714 |

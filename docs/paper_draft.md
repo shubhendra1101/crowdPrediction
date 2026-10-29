@@ -1,6 +1,6 @@
 # Zone-level crowd-density forecasting and early warning from uncalibrated classroom CCTV with zero-shot models
 
-*Draft v1, 2026-10-26. IEEE conference version (LaTeX, IEEEtran): `docs/paper/main.tex` + `refs.bib` + `figures/`, 2026-10-27; edit that file from now on.*
+*Superseded on 2026-10-29 by the revised IEEE paper `docs/paper/main.tex`, which corrects three points of this draft: (1) the Jülich coverage figures are over all test forecasts, not "at critical targets"; (2) the slowing precursor reached precision 0.54 (3.75× the base rate), not 0.47 / 3.2×; (3) the hard switch is evaluated at frame level only, and the zone pipeline uses the CLIP-EBC density map. Draft v1, 2026-10-26. IEEE conference version (LaTeX, IEEEtran): `docs/paper/main.tex` + `refs.bib` + `figures/`, 2026-10-27; edit that file from now on.*
 
 **Authors:** Nidhi Singh (nidhi.singh@kiet.edu), Shubhendra Singh (shubhendra.2327cseml@kiet.edu), Shruti Mishra (shruti.2327cseml1093@kiet.edu); KIET Deemed to be University.
 

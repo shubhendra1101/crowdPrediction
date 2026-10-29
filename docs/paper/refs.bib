@@ -1,5 +1,6 @@
-% References for the CrowdSafe paper (IEEEtran). Verified 2026-10-27 against arXiv / DOI / publisher pages
-% unless marked "CHECK" (still to be confirmed by the authors before submission).
+% References for the CrowdSafe paper (IEEEtran). Verified 2026-10-27/29 against arXiv, DOI, publisher, CVF/AAAI
+% proceedings pages or the Juelich archive pages unless a field is omitted. Fields that could not be verified are
+% left out rather than guessed.
 
 @article{helbing2007,
   author  = {Dirk Helbing and Anders Johansson and Habib Zein Al-Abideen},
@@ -38,12 +39,32 @@
   year      = {2016}
 }
 
+@inproceedings{li2018csrnet,
+  author    = {Yuhong Li and Xiaofan Zhang and Deming Chen},
+  title     = {{CSRNet}: Dilated convolutional neural networks for understanding the highly congested scenes},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {1091--1100},
+  year      = {2018},
+  doi       = {10.1109/CVPR.2018.00120}
+}
+
 @inproceedings{ma2025clipebc,
   author    = {Yiming Ma and Victor Sanchez and Tanaya Guha},
   title     = {{CLIP-EBC}: {CLIP} can count accurately through enhanced blockwise classification},
   booktitle = {Proc. IEEE Int. Conf. Multimedia and Expo (ICME)},
   year      = {2025},
   note      = {arXiv:2403.09281}
+}
+
+@article{wang2021nwpu,
+  author  = {Qi Wang and Junyu Gao and Wei Lin and Xuelong Li},
+  title   = {{NWPU-Crowd}: A large-scale benchmark for crowd counting and localization},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {43},
+  number  = {6},
+  pages   = {2141--2149},
+  year    = {2021},
+  doi     = {10.1109/TPAMI.2020.3013269}
 }
 
 @misc{yolo11,
@@ -67,6 +88,34 @@
   booktitle = {Proc. European Conf. Computer Vision (ECCV)},
   pages     = {402--419},
   year      = {2020}
+}
+
+@inproceedings{zhang2017stresnet,
+  author    = {Junbo Zhang and Yu Zheng and Dekang Qi},
+  title     = {Deep spatio-temporal residual networks for citywide crowd flows prediction},
+  booktitle = {Proc. AAAI Conf. Artificial Intelligence},
+  volume    = {31},
+  number    = {1},
+  year      = {2017},
+  doi       = {10.1609/aaai.v31i1.10735}
+}
+
+@article{niu2020overcrowdedness,
+  author  = {Yuzhen Niu and Weifeng Shi and Wenxi Liu and Shengfeng He and Jia Pan and Antoni B. Chan},
+  title   = {Over-crowdedness alert! {F}orecasting the future crowd distribution},
+  journal = {arXiv preprint arXiv:2006.05127},
+  year    = {2020}
+}
+
+@article{cao2013video,
+  author  = {Lijun Cao and Kaiqi Huang},
+  title   = {Video-based crowd density estimation and prediction system for wide-area surveillance},
+  journal = {China Communications},
+  volume  = {10},
+  number  = {5},
+  pages   = {79--88},
+  year    = {2013},
+  doi     = {10.1109/CC.2013.6520940}
 }
 
 @article{ansari2024chronos,
@@ -94,8 +143,6 @@
   doi     = {10.1561/2200000101}
 }
 
-% CHECK: the archive asks users to cite the individual experiment data sets (corridor 2013, entrance semicircle);
-% add those DOIs from the experiment pages at https://ped.fz-juelich.de/da/ before submission.
 @misc{julich_archive,
   author       = {{Forschungszentrum J{\"u}lich}},
   title        = {Data archive of experimental data from studies about pedestrian dynamics},
@@ -103,21 +150,50 @@
   note         = {Accessed Oct. 2026}
 }
 
-% CHECK: release year of PedPy v1.5.1 on its Zenodo page.
+% Dataset pages name no individual creators; cited by title, archive and DOI as the archive provides them.
+@misc{julich_uni2013,
+  author       = {{Forschungszentrum J{\"u}lich}},
+  title        = {Pedestrian flow in a unidirectional corridor ({BaSiGo} project)},
+  howpublished = {Pedestrian Dynamics Data Archive},
+  year         = {2013},
+  doi          = {10.34735/ped.2013.6}
+}
+
+@misc{julich_semicircle,
+  author       = {{Forschungszentrum J{\"u}lich}},
+  title        = {Entrance 1, entry without guiding barriers (semicircle setup)},
+  howpublished = {Pedestrian Dynamics Data Archive},
+  year         = {2013},
+  doi          = {10.34735/ped.2013.2}
+}
+
+@article{cao2017fundamental,
+  author  = {Shuchao Cao and Armin Seyfried and Jun Zhang and Stefan Holl and Weiguo Song},
+  title   = {Fundamental diagrams for multidirectional pedestrian flows},
+  journal = {Journal of Statistical Mechanics: Theory and Experiment},
+  year    = {2017},
+  doi     = {10.1088/1742-5468/aa620d}
+}
+
+@article{sieben2017collective,
+  author  = {Anna Sieben and Jette Schumann and Armin Seyfried},
+  title   = {Collective phenomena in crowds---{W}here pedestrian dynamics need social psychology},
+  journal = {PLOS ONE},
+  volume  = {12},
+  number  = {6},
+  year    = {2017},
+  doi     = {10.1371/journal.pone.0177328}
+}
+
 @misc{pedpy,
   author       = {Tobias Schr{\"o}dter and {The PedPy Development Team}},
-  title        = {{PedPy}: Pedestrian dynamics analysis library},
-  version      = {1.5.1},
-  publisher    = {Zenodo},
-  year         = {2025},
+  title        = {{PedPy}: Pedestrian dynamics analysis library, version 1.5.1},
+  howpublished = {Zenodo},
   doi          = {10.5281/zenodo.21476844}
 }
 
-% CHECK: JuPedSim citation (authors / Zenodo DOI) from https://www.jupedsim.org before submission.
 @misc{jupedsim,
   author       = {{The JuPedSim Development Team}},
-  title        = {{JuPedSim}: Simulating pedestrian dynamics},
-  version      = {1.4.2},
-  howpublished = {\url{https://www.jupedsim.org}},
-  year         = {2025}
+  title        = {{JuPedSim}: Simulating pedestrian dynamics, version 1.4.2},
+  howpublished = {\url{https://www.jupedsim.org}}
 }
