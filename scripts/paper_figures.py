@@ -94,7 +94,7 @@ def pipeline_diagram(out: Path) -> None:
             ("win", "Forecast window", "last 30 s per zone\nat 1 Hz; live: 1-s\ngrid, gaps\nforward-filled", "fc", xs[0]),
             ("fc", "Forecasters", "Chronos-2, zero-shot:\nper zone (+ motion\ncovariates) or joint;\npersistence, physics*", "fc", xs[1]),
             ("conf", "Conformal bound", "U_h = p90_h + q_h;\nq_h fitted on the\nvalidation split", "fc", xs[2]),
-            ("risk", "Risk level", "band of max(U_h, ρ):\nLow / Medium /\nHigh / Critical;\nprecursors tested,\nnot used", "risk", xs[3]),
+            ("risk", "Risk level", "band of max(U_h, ρ):\nLow / Medium /\nHigh / Critical", "risk", xs[3]),
             ("alert", "Alert manager", "raise: ≥ High for 10 s\nclear: < High for 30 s;\nreason text,\ntime-to-critical", "risk", xs[4]),
             ("outp", "Outputs", "alert events;\nstage log (live run);\nFastAPI/WebSocket\n→ replay dashboard", "out", xs[5])):
         b(key, x, 0.4, w6, 1.7, title, body, c)
