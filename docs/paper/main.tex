@@ -128,7 +128,7 @@ The floor is then divided into zones on a plan in metres, small enough that a da
 In each classroom we used 3$\times$3 seating blocks plus the front aisle (4--16\,m$^2$ each), projected at seated head height (1.2\,m); in H103 a glass partition that shows the neighbouring room was masked out.
 
 \subsection{People Counting}
-Every second, a frame of the video is passed to a pretrained density model, CLIP-EBC ViT-B/16 with NWPU-Crowd weights~\cite{ma2025clipebc,wang2021nwpu}, used without any training. Applied in 224-pixel windows, it returns a density map $D_t$ whose cells hold the expected number of heads, so it can be summed over any region of the image. Person detectors instead return boxes; YOLO11l~\cite{yolo11} and a YOLO11 head detector trained on CrowdHuman~\cite{shao2018crowdhuman} therefore serve as baselines. Because detectors can be more accurate when only a few people are present, we also test combining their frame counts with the density model: a hard switch to the detector below a threshold $\tau$, a constant or 50/50 weighting, and a learned per-frame weight. These combinations act on whole-frame counts and are compared at frame level, while the zone pipeline continues with the density map.
+Every second, a frame of the video is passed to a pretrained density model, CLIP-EBC ViT-B/16 with NWPU-Crowd weights~\cite{ma2025clipebc,wang2021nwpu}, used without any training. Applied in non-overlapping 224-pixel windows (45 windows for a zero-padded 1080p frame), it returns a density map $D_t$ of 135$\times$240 cells, one per 8$\times$8 pixels, whose values are expected numbers of heads, so it can be summed over any region of the image. Person detectors instead return boxes; YOLO11l~\cite{yolo11} and a YOLO11 head detector trained on CrowdHuman~\cite{shao2018crowdhuman} therefore serve as baselines. Because detectors can be more accurate when only a few people are present, we also test combining their frame counts with the density model: a hard switch to the detector below a threshold $\tau$, a constant or 50/50 weighting, and a learned per-frame weight. These combinations act on whole-frame counts and are compared at frame level, while the zone pipeline continues with the density map.
 In our recordings, one frame per second of every classroom and lab video was passed through CLIP-EBC; the detectors and combinations were run on the 160 hand-labelled frames to choose the counting route (Section~\ref{sec:count}).
 
 \subsection{Zone Density Estimation in Persons per \texorpdfstring{m$^2$}{m2}}
@@ -136,7 +136,7 @@ The density map from the counting step and the zone regions and areas from the z
 For H705 this produces ten densities every second, one for each seating block and the aisle.
 
 \subsection{Crowd Motion Feature Extraction}
-Density shows how full a zone is; motion shows how its crowd is behaving. The same sampled frame and a second frame 0.2\,s later are passed to pretrained RAFT-large optical flow~\cite{teed2020raft} at 960\,px. Each displacement is carried to the floor by the camera model, turning pixel shifts into velocities in m/s, and weighted by the density map so that empty floor contributes nothing. Per zone this gives the mean speed, the velocity variance, crowd pressure $\rho\cdot\mathrm{var}$~\cite{helbing2007}, the entropy of an 8-bin direction histogram and the share of counter-flow. The number of people crossing a zone's boundary per second (inflow and outflow) needs individual trajectories, so it is available only where trajectories exist.
+Density shows how full a zone is; motion shows how its crowd is behaving. The same sampled frame and a second frame 0.2\,s later are passed to pretrained RAFT-large optical flow~\cite{teed2020raft} at 544$\times$960 pixels with 12 refinement iterations, and the flow is averaged into the same 135$\times$240 cells as $D_t$. Each displacement is carried to the floor by the camera model, turning pixel shifts into velocities in m/s, and weighted by the density map so that empty floor contributes nothing. Per zone this gives the mean speed, the velocity variance, crowd pressure $\rho\cdot\mathrm{var}$~\cite{helbing2007}, the entropy of an 8-bin direction histogram and the share of counter-flow. The number of people crossing a zone's boundary per second (inflow and outflow) needs individual trajectories, so it is available only where trajectories exist.
 For the classroom recordings all motion values come from RAFT and inflow and outflow remain empty; for J\"ulich and simulated runs, speeds and boundary crossings come directly from each person's trajectory.
 
 \subsection{Zone Feature Table Construction}
@@ -213,7 +213,7 @@ No model is trained. Fusion parameters are fitted leave-one-room-out. Conformal 
 Counting: MAE in people per frame. Zone density: MAE in \pmsq. Forecasts: MAE and \emph{coverage}, the share of test forecasts at or below the bound (target 0.90). Alerts: an \emph{event} is the first second a zone reaches 4 (or 5)\,\pmsq{} after monitoring starts; it is \emph{warned in time} if an alert was raised at most (longest horizon + 10\,s) before it and more than 15\,s after monitoring began. Lead time is alert-to-event time; a \emph{false alarm} has no event within 120\,s, counted per zone-hour.
 
 \subsection{Hardware and Software}
-Density maps, flow, Chronos-2 and latency ran on one shared NVIDIA A100 (40\,GB); label-based counting used ONNX models on a CPU. Simulations used JuPedSim 1.4.2 and analysis PedPy 1.5.1.
+Density maps, flow, Chronos-2 and latency ran on one shared NVIDIA A100 (40\,GB); label-based counting used ONNX models on a CPU. Simulations used JuPedSim 1.4.2 and analysis PedPy 1.5.1. No model is trained; the deployed path has about 222\,M parameters (Table~\ref{tab:models}), extracting features from all 2.6\,h of CCTV took 33.5\,min on the A100, and the 16 simulations took 9.7\,min on a CPU.
 
 \section{Results and Discussion}
 
@@ -326,7 +326,26 @@ Chronos-2 joint & 30\,\% (7.5\,s; 1.5) & 1/9 (18\,s; 0.5) & 26.5\,\% (25\,s; 2.7
 
 \subsection{Runtime Performance}
 \label{sec:runtime}
-On one shared A100 with cam02 played at real speed, the live pipeline has a median latency of 0.49\,s (p95 1.6\,s) from frame to alert state, with 94\,\% of 1-s cycles on time and 2.0\,GB of GPU memory; median stage times are 159\,ms (CLIP-EBC), 103\,ms (RAFT) and 54\,ms (Chronos-2, every 5\,s). Unpaced, 908\,s of video took 196\,s (4.6$\times$ real time). A laptop CPU needs about 19\,s per second of video.
+On one shared A100 with cam02 played at real speed, the live pipeline has a median latency of 0.49\,s (p95 1.6\,s) from frame to alert state, with 94\,\% of 1-s cycles on time and 2.0\,GB of GPU memory; median stage times are 159\,ms (CLIP-EBC), 103\,ms (RAFT) and 54\,ms (Chronos-2, every 5\,s). Unpaced, 908\,s of video took 196\,s (4.6$\times$ real time). A laptop CPU needs about 19\,s per second of video. Table~\ref{tab:models} lists the size, input, output and time of each model.
+
+\begin{table}[!t]
+\caption{Models: Size, Data Passed and Time per Call}
+\label{tab:models}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}p{1.5cm}p{0.85cm}p{1.9cm}p{1.95cm}p{1.3cm}@{}}
+\toprule
+Model & Params & Input & Output & A100 time \\
+\midrule
+CLIP-EBC ViT-B/16 & $\approx$97\,M & 45 windows of 224$\times$224 & density map, 135$\times$240 & 159\,ms \\
+RAFT-large & $\approx$5.3\,M & 2 frames, 544$\times$960 & flow, 135$\times$240 cells & 103\,ms \\
+Chronos-2 & 120\,M & last 30\,s per zone & 3 quantiles $\times$ 3 horizons & 54\,ms per 5\,s \\
+YOLO11l (baseline) & $\approx$25\,M & frame at 1280\,px & person boxes & 15.5\,ms \\
+\bottomrule
+\multicolumn{5}{@{}p{7.6cm}@{}}{$\approx$: estimated from the fp32 model file size; Chronos-2 from its model card. Times: live medians (YOLO11l: single benchmark).}
+\end{tabular}
+\end{table}
 
 \subsection{Comparison with Existing Systems}
 On ShanghaiTech A, zero-shot CLIP-EBC is close to CSRNet and better than MCNN, both trained on that dataset (Table~\ref{tab:counting}); training regimes differ, so this is not a claim of superiority. System-level studies~\cite{cao2013video,niu2020overcrowdedness} use different data and metrics and cannot be compared numerically.
