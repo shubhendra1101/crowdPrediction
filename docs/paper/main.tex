@@ -4,7 +4,7 @@
 % Every number comes from results/ (see docs/PROJECT_REPORT.md for the source file of each).
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
-\usepackage{cite}
+\usepackage[nocompress]{cite}   % multiple citations as [3], [4], [5], never ranges
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -19,39 +19,39 @@
 
 \begin{document}
 
-\title{CrowdSafe: Zero-Shot Crowd Density Estimation and Uncertainty-Aware Forecasting for CCTV-Based Early Warning}
+\title{CrowdSafe: Zero-Shot Crowd Density Estimation and\\ Uncertainty-Aware Forecasting for CCTV-Based Early Warning}
 
 \author{
-\IEEEauthorblockN{Nidhi Singh}
-\IEEEauthorblockA{KIET Deemed to be University\\
-Ghaziabad, India\\
-nidhi.singh@kiet.edu}
-\and
-\IEEEauthorblockN{Shubhendra Singh}
-\IEEEauthorblockA{KIET Deemed to be University\\
-Ghaziabad, India\\
-shubhendra.2327cseml@kiet.edu}
-\and
 \IEEEauthorblockN{Shruti Mishra}
-\IEEEauthorblockA{KIET Deemed to be University\\
+\IEEEauthorblockA{KIET Group of Institutions\\
 Ghaziabad, India\\
 shruti.2327cseml1093@kiet.edu}
 \and
+\IEEEauthorblockN{Shubhendra Singh}
+\IEEEauthorblockA{KIET Group of Institutions\\
+Ghaziabad, India\\
+shubhendra.2327cseml@kiet.edu}
+\and
 \IEEEauthorblockN{Riddhima Sangal}
-\IEEEauthorblockA{KIET Deemed to be University\\
+\IEEEauthorblockA{KIET Group of Institutions\\
 Ghaziabad, India\\
 riddhima.2327cseml10@kiet.edu}
 \and
 \IEEEauthorblockN{Sidharth Gautam}
-\IEEEauthorblockA{KIET Deemed to be University\\
+\IEEEauthorblockA{KIET Group of Institutions\\
 Ghaziabad, India\\
 sidharth.2327cseml10@kiet.edu}
+\and
+\IEEEauthorblockN{Nidhi Singh}
+\IEEEauthorblockA{KIET Group of Institutions\\
+Ghaziabad, India\\
+nidhi.singh@kiet.edu}
 }
 
 \maketitle
 
 \begin{abstract}
-Crowd crushes are driven by local density, yet most camera analytics report only a head count per image. CrowdSafe converts fixed CCTV video into crowd density in \pmsq{} per floor zone, forecasts the density 10--60\,s ahead and raises tiered alerts, using only pretrained models. A zero-shot CLIP-EBC density map is projected onto the floor through a camera model fitted to furniture of known size; RAFT optical flow adds motion features; Chronos-2 forecasts each zone zero-shot, and split conformal calibration sets the 90\,\% upper bound of the forecast. On classroom CCTV (four cameras, three rooms, 6,715 labelled heads), CLIP-EBC counts with a mean absolute error of 2.0--5.1 people per frame, and zone density lies within 0.08--0.10\,\pmsq{} of the labels; a learned detector--density fusion fails on unseen rooms. On held-out runs, the calibrated Chronos-2 bound holds for 84--96\,\% of forecasts, against 66--85\,\% for persistence on real J\"ulich crowds. Because the classroom CCTV never becomes dangerous, alerts are evaluated on J\"ulich experiments and JuPedSim simulations: alerts on current density never warn before a zone reaches 4\,\pmsq, while forecast-driven alerts warn in time for 34\,\% of 47 simulated events (median 7.5\,s ahead) and for one of nine real events. The pipeline runs live on one A100 GPU with a median latency of 0.49\,s. Warnings arrive seconds, not minutes, ahead.
+Crowd safety depends on how many people stand on each square metre of floor, while most camera systems only count people in the whole image. CrowdSafe turns the video of a fixed CCTV camera into crowd density, in \pmsq, for every zone of the floor and raises alerts before a zone becomes overcrowded. First, a camera model is fitted to desks of known size, which links every image pixel to a floor position in metres. Next, the CLIP-EBC model produces a density map of the people in each frame, and RAFT optical flow measures how the people move. The camera model then converts these maps into the density and walking speed of every floor zone, once per second. The Chronos-2 forecasting model predicts the density of each zone 10--60\,s ahead, and conformal calibration adds a safe upper limit to each forecast. This upper limit places every zone in one of four levels, Low, Medium, High or Critical, and an alert is raised when a zone stays at High or above for 10\,s. The system is tested on classroom CCTV recordings with 6,715 hand-labelled heads, on real crowd experiments from J\"ulich and on JuPedSim simulations. People are counted with an error of 2.0--5.1 per frame, zone density is measured within 0.08--0.10\,\pmsq, the upper limit holds for 84--96\,\% of forecasts, alerts arrive a median of 7.5\,s ahead for 34\,\% of simulated dangerous events, and the full pipeline runs on one A100 GPU with a median delay of 0.49\,s.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -60,21 +60,13 @@ crowd counting, crowd density estimation, zero-shot learning, time-series foreca
 
 \section{Introduction}
 
-\subsection{Background}
 Crowd disasters are caused by local density, not by the total number of people present. Dangerous conditions begin at roughly 4--5\,\pmsq, with stop-and-go and turbulent flow at higher densities~\cite{fruin1971,helbing2007}. Many venues already operate fixed CCTV cameras.
-
-\subsection{Motivation}
 Crowd-counting methods and most deployed analytics report people per image~\cite{zhang2016mcnn,li2018csrnet,ma2025clipebc}. Such a count does not show \emph{where} density builds up and cannot be compared with density limits without the floor area that each image region covers, which requires a camera calibration that existing installations rarely have. Anticipating danger also needs a forecaster that works without venue-specific training data, because dangerous events are rare.
-
-\subsection{Problem Statement}
 Given an existing CCTV camera and a few measured dimensions in the scene, the task is to estimate the density of each floor zone every second, forecast that density with a reliable upper bound, and raise an alert \emph{before} a zone becomes dangerous, with few false alarms.
-
-\subsection{Objectives}
 The objectives are (i) zone density in \pmsq{} without training a counting model; (ii) a forecast bound with coverage checked on held-out data; (iii) alert lead time and false alarms measured on real and simulated dangerous crowds; and (iv) live latency on one GPU.
 
-\subsection{Contributions}
 \begin{enumerate}
-\item A camera calibration from desk tops and straight edges, validated against measured distances excluded from the fit.
+\item A camera calibration that fits a camera model with lens distortion to desk tops of known length and to straight edges in the room, so that every image pixel maps to a floor position in metres; the result is checked against tape-measured distances that are not used in the fit.
 \item A held-out counting evaluation on real CCTV, including the negative result that learned detector--density fusion does not transfer across rooms.
 \item Zero-shot, conformally calibrated forecasting of zone density.
 \item A strict early-warning evaluation showing that forecast-driven alerts warn only seconds ahead.
