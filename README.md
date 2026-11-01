@@ -29,3 +29,12 @@ python scripts/build_notebooks.py
 ```
 
 Upload the `.ipynb` to Kubeflow, run all cells, and return the zips it prints. Returned ONNX models go in `weights/`. Changes to the plan are recorded in `docs/decisions.md`.
+
+## Team
+
+- Shruti Mishra
+- Shubhendra Singh
+- Riddhima Sangal
+- Sidharth Gautam
+
+KIET Group of Institutions, Ghaziabad
